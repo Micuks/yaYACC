@@ -6,3 +6,4 @@ tests/runtests
 
 .idea
 cmake-build-debug
+build

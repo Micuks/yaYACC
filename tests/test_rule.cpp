@@ -6,7 +6,7 @@
 #include <vector>
 
 class RuleTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() {
 
         Variable *lhs;
@@ -30,20 +30,20 @@ protected:
     void TearDown() {
         delete r0_;
 
-        for (auto &a: r1_->rhs) {
+        for (auto &a : r1_->rhs) {
             if (a->getType() == SymbolType(variable)) {
-                delete (Variable *) a;
+                delete (Variable *)a;
             } else if (a->getType() == SymbolType(terminal)) {
-                delete (Terminal *) a;
+                delete (Terminal *)a;
             }
         }
         delete r1_;
 
-        for (auto &a: r2_->rhs) {
+        for (auto &a : r2_->rhs) {
             if (a->getType() == SymbolType(variable)) {
-                delete (Variable *) a;
+                delete (Variable *)a;
             } else if (a->getType() == SymbolType(terminal)) {
-                delete (Terminal *) a;
+                delete (Terminal *)a;
             }
         }
         delete r2_;
@@ -65,10 +65,8 @@ TEST_F(RuleTest, IsLhsCorrect) {
 }
 
 TEST_F(RuleTest, PrintRule) {
-    std::cout << "r0_:\n";
-    r0_->printRule();
-    std::cout << "r1_:\n";
-    r1_->printRule();
-    std::cout << "r2_:\n";
+    std::cout << "r0_: " << *r0_ << std::endl;
+    std::cout << "r1_: " << *r1_ << std::endl;
+    std::cout << "r2_: ";
     r2_->printRule();
 }

@@ -124,7 +124,7 @@ void Grammar::printRules() {
     int cnt = 0;
     cout << "Rules:" << endl;
     for (auto &a : rules) {
-        cout << cnt++;
+        cout << cnt++ << ": ";
         a.printRule();
     }
     cout << endl;
@@ -148,10 +148,12 @@ Symbol *Grammar::getSymbol(int tag) {
 }
 
 Terminal *Grammar::matchTerminal(string str) {
-    for (const auto &a : terminals) {
-        if (a->matcher(str)) {
-            return a;
-        }
-    }
+    cout << terminals.size();
+    // for (auto &a : terminals) {
+    //     cout << a->getIdentifier() << " ";
+    //     if (a->matcher(str)) {
+    //         return a;
+    //     }
+    // }
     return nullptr;
 }

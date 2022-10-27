@@ -18,12 +18,13 @@ enable_testing()
 add_executable(
         test_all
         tests/test_all.cpp
-        tests/test_grammar.cpp
         tests/test_symbol.cpp
-        tests/test_rule.cpp)
+        tests/test_rule.cpp
+        tests/test_grammar.cpp)
 
 target_link_libraries(
         test_all
+        yaYACC
         GTest::gtest_main
 )
 
@@ -33,9 +34,18 @@ gtest_discover_tests(test_all)
 add_executable(
         main
         src/main.cpp
+)
+
+target_link_libraries(
+        main
+        yaYACC
+        )
+
+add_library(
+        yaYACC
         src/cli_parser.cpp
         src/grammar.cpp
 #        src/parser.cpp
         src/rule.cpp
         src/symbol.cpp
-)
+        )
