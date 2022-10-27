@@ -1,0 +1,8 @@
+build/*
+!build/Makefile
+
+tests/runtests
+
+
+.idea
+cmake-build-debug

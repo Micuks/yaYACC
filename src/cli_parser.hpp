@@ -29,5 +29,5 @@ class CliParser {
     void printError();
     void reportError();
     void isHasRestParameter(int i);
-    bool hasParameter(std::string param);
+    bool hasParameter(const char* param, int i);
 };

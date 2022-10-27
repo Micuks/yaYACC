@@ -1,16 +1,20 @@
 #include "cli_parser.hpp"
+#include "grammar.hpp"
+#include "parser.hpp"
+#include "rule.hpp"
+#include "symbol.hpp"
 
 int main(int argc, char **argv) {
     CliParser clip(argc, argv);
-    Grammer grammer;
-    Parser parser;
+    Grammar grammar;
+//    Parser parser;
 
     if (clip.g()) {
         // TODO: handle conflict with p
-        grammer.loadGrammer(clip.gFile());
+        grammar.loadGrammar(clip.gFile());
         if(clip.v()){
-            grammer.printRules();
+            grammar.printRules();
         }
-        parser.buildTable();
+//        parser.buildTable();
     }
 }

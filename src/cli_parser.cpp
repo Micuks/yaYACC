@@ -7,30 +7,30 @@ CliParser::CliParser(int argc, char **argv) : argc(argc), argv(argv) {
     errorFlag = false;
     optg = opto = opti = optv = opts = false;
     for (int i = 0; i < argc; i++) {
-        if (hasParameter("-h")) {
+        if (hasParameter("-h", i)) {
             printHelp();
             break;
-        } else if (hasParameter("-g")) {
+        } else if (hasParameter("-g", i)) {
             optg = true;
             isHasRestParameter(i);
             gfile = argv[++i];
-        } else if (hasParameter("-o")) {
+        } else if (hasParameter("-o", i)) {
             opto = true;
             isHasRestParameter(i);
             ofile = argv[++i];
-        } else if (hasParameter("-p")) {
+        } else if (hasParameter("-p", i)) {
             optp = true;
             isHasRestParameter(i);
             pfile = argv[++i];
-        } else if (hasParameter("-i")) {
+        } else if (hasParameter("-i", i)) {
             opti = true;
             isHasRestParameter(i);
             ifile = argv[++i];
-        } else if (hasParameter("-s")) {
+        } else if (hasParameter("-s", i)) {
             opts = true;
             isHasRestParameter(i);
             sstr = argv[++i];
-        } else if (hasParameter("-v")) {
+        } else if (hasParameter("-v", i)) {
             optv = true;
         } else {
             reportError();
@@ -50,7 +50,8 @@ void CliParser::reportError() {
     printError();
 }
 
-void printError() { cout << "Invalid option[s]?. Use -h for help" << endl; }
+void CliParser::printError() { cout << "Invalid option[s]?. Use -h for help"
+<< endl; }
 
 void CliParser::printHelp() {
     cout
@@ -73,4 +74,8 @@ void CliParser::printHelp() {
            "parse input.txt using parser_instance saved previously:\n"
            "    ./parse -p parser_instance -i input.txt"
         << endl;
+}
+
+bool CliParser::hasParameter(const char* param, int i) {
+    return strcmp(argv[i], param);
 }

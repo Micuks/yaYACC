@@ -1,4 +1,4 @@
-#include "grammer.hpp"
+#include "grammar.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -19,8 +19,8 @@ vector<Rule> Grammar::atLhsRules(Variable *v) {
 vector<Rule> Grammar::atRhsRules(Symbol *s) {
     vector<Rule> retVec;
     for (Rule r : rules) {
-        auto a = find(rules.begin(), rules.end(), s);
-        if (a != rules.end()) {
+        auto a = find(r.rhs.begin(), r.rhs.end(), s);
+        if (a != r.rhs.end()) {
             // if (s->getType() == SymbolType(variable) && r.lhs != s) {
             //     retVec.push_back(r);
             // }
@@ -123,43 +123,35 @@ void Grammar::loadGrammar(const char *filename) {
 void Grammar::printRules() {
     int cnt = 0;
     cout << "Rules:" << endl;
-    for (const auto &a : rules) {
-        cout << cnt++ << a.lhs->getIdentifier() << "->";
-        int cnt2 = 0;
-        for (const auto &b : a.rhs) {
-            cout << b->getIdentifier();
-            if (++cnt2 < a.rhs.size()) {
-                cout << " | ";
-            }
-        }
-        cout << endl;
+    for (auto &a : rules) {
+        cout << cnt++;
+        a.printRule();
     }
     cout << endl;
 }
 
-Symbol* Grammar::getSymbol(int tag) {
-    if(tag == -1) {
+Symbol *Grammar::getSymbol(int tag) {
+    if (tag == -1) {
         return epsilon;
     }
-    for(const auto& a : terminals) {
-        if(a->getTag() == tag) {
+    for (const auto &a : terminals) {
+        if (a->getTag() == tag) {
             return a;
         }
     }
-    for(const auto& a : variables) {
-        if(a->getTag() == tag) {
+    for (const auto &a : variables) {
+        if (a->getTag() == tag) {
             return a;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
-
 Terminal *Grammar::matchTerminal(string str) {
-    for(const auto& a : terminals) {
-        if(a->matcher(str)) {
+    for (const auto &a : terminals) {
+        if (a->matcher(str)) {
             return a;
         }
     }
-    return NULL;
+    return nullptr;
 }
