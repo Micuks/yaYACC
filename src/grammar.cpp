@@ -8,9 +8,21 @@
 using namespace std;
 vector<Rule> Grammar::atLhsRules(Variable *v) {
     vector<Rule> retVec;
-    for (Rule r : rules) {
-        if (r.lhs == v) {
+    for (Rule &r : rules) {
+#ifdef DEBUG_GRAMMAR
+        cout << "r: " << r;
+        cout << "r.lhs: " << r.lhs->toString() << ", v: " << v->toString()
+             << endl;
+#endif // DEBUG_GRAMMAR
+        if (*(r.lhs) == *v) {
+#ifdef DEBUG_GRAMMAR
+            cout << "equal" << endl;
+#endif // DEBUG_GRAMMAR
             retVec.push_back(r);
+        } else {
+#ifdef DEBUG_GRAMMAR
+            cout << "neq" << endl;
+#endif // DEBUG_GRAMMAR
         }
     }
     return retVec;
@@ -19,7 +31,13 @@ vector<Rule> Grammar::atLhsRules(Variable *v) {
 vector<Rule> Grammar::atRhsRules(Symbol *s) {
     vector<Rule> retVec;
     for (Rule r : rules) {
+#ifdef DEBUG_GRAMMAR
+        cout << "r: " << r;
+#endif // DEBUG_GRAMMAR
         auto a = find(r.rhs.begin(), r.rhs.end(), s);
+#ifdef DEBUG_GRAMMAR
+        cout << "a: " << a;
+#endif // DEBUG_GRAMMAR
         if (a != r.rhs.end()) {
             // if (s->getType() == SymbolType(variable) && r.lhs != s) {
             //     retVec.push_back(r);
@@ -49,19 +67,24 @@ void Grammar::loadGrammar(const char *filename) {
         if (line.length() == 0) {
             continue;
         }
-        // Initialize current rule
+#ifdef DEBUG
+        cout << "New line: " << line << endl;
+#endif // DEBUG
+       // Initialize current rule
         currRule = Rule();
 
         istringstream ss(line);
         string token;
-        string preToken;
 
         while (ss >> token) {
-            if (token == "->") {
-                // Previous symbol is lhs of current rule
+#ifdef DEBUG
+            cout << "currToken[" << token << "]\n";
+#endif // DEBUG
+            if (currRule.lhs == nullptr) {
+                // Read token to create lhs of current rule
                 bool isExist = false;
                 for (auto &a : variables) {
-                    if (a->getIdentifier() == preToken) {
+                    if (a->getIdentifier() == token) {
                         currRule.lhs = a;
                         isExist = true;
                         break;
@@ -69,10 +92,19 @@ void Grammar::loadGrammar(const char *filename) {
                 }
                 if (!isExist) {
                     // Lhs symbol not added to variables vector yet.
-                    //     Add it.
+                    // Add it.
                     auto sym = new Variable(cnt++, variables.size(), token);
+                    variables.push_back(sym);
                     currRule.lhs = sym;
                 }
+            } else if (token == "->") {
+                // Previous symbol is lhs of current rule.
+                // eat it!
+            } else if (token == "|") {
+                // Create new rule with same lhs.
+                rules.push_back(currRule);
+                currRule = Rule();
+                currRule.lhs = rules.back().lhs;
             } else if (token[0] == '<') {
                 bool isExist = false;
                 for (auto &a : terminals) {
@@ -108,7 +140,7 @@ void Grammar::loadGrammar(const char *filename) {
                     }
                 }
             }
-            preToken = token;
+            token = token;
         }
         // End of rule, add it to ruleset
         rules.push_back(currRule);
@@ -149,11 +181,21 @@ Symbol *Grammar::getSymbol(int tag) {
 
 Terminal *Grammar::matchTerminal(string str) {
     cout << terminals.size();
-    // for (auto &a : terminals) {
-    //     cout << a->getIdentifier() << " ";
-    //     if (a->matcher(str)) {
-    //         return a;
-    //     }
-    // }
+    for (auto &a : terminals) {
+        cout << a->getIdentifier() << " ";
+        if (a->matcher(str)) {
+            return a;
+        }
+    }
     return nullptr;
+}
+
+bool Grammar::toEpsilonDirectly(Variable *sym) {
+    auto ruleSet = atLhsRules(sym);
+    for (auto &a : ruleSet) {
+        if (a.rhs.size() == 1 && a.rhs.at(0) == epsilon) {
+            return true;
+        }
+    }
+    return false;
 }

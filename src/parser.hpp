@@ -9,16 +9,17 @@
 
 class Parser {
   public:
+    Parser() {}
     Parser(Grammar *g, bool verbose) : grammar(g), verbose(verbose) {}
 
     void parse(std::vector<Terminal *> *input);
     void makeTable();
     void importFromFile(const char *filename);
     void exportToFile(const char *filename);
-    void printFirst();
-    void printFollow();
+    void printFirstTable();
+    void printFollowTable();
 
-  private:
+    // private:
     int **parseTable;
     Grammar *grammar;
     bool verbose;

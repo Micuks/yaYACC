@@ -3,6 +3,14 @@ project(yaYACC)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Debug)
+endif()
+# set(CMAKE_BUILD_TYPE Release)
+
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_RULE")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GRAMMAR")
+
 include(fetchContent)
 FetchContent_Declare(
         googletest
@@ -20,7 +28,15 @@ add_executable(
         tests/test_all.cpp
         tests/test_symbol.cpp
         tests/test_rule.cpp
-        tests/test_grammar.cpp)
+        tests/test_grammar.cpp
+        tests/test_parser.cpp
+        )
+
+# target_compile_definitions(
+#         test_all
+#         PRIVATE
+#         $<$<CONFIG:Debug>:DEBUG>
+#         )
 
 target_link_libraries(
         test_all
@@ -31,6 +47,7 @@ target_link_libraries(
 include(googletest)
 gtest_discover_tests(test_all)
 
+# main executable part
 add_executable(
         main
         src/main.cpp
@@ -44,8 +61,8 @@ target_link_libraries(
 add_library(
         yaYACC
         src/cli_parser.cpp
-        src/grammar.cpp
-#        src/parser.cpp
-        src/rule.cpp
         src/symbol.cpp
+        src/rule.cpp
+        src/grammar.cpp
+       src/parser.cpp
         )

@@ -14,7 +14,8 @@ class Rule {
     Rule() : lhs(nullptr) {}
     Rule(Variable *lhs, vector<Symbol *> rhs) : lhs(lhs), rhs(std::move(rhs)) {}
     void printRule();
+    // string toString();
 };
 
-ostream &operator<<(ostream &os, Rule &r);
+ostream &operator<<(ostream &os, const Rule &r);
 #endif // !RULE_HPP

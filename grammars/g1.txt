@@ -1,2 +1,2 @@
-S -> aA
-A -> b
+S -> <a> A
+A -> <b> | EPSILON

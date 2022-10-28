@@ -7,14 +7,14 @@
 int main(int argc, char **argv) {
     CliParser clip(argc, argv);
     Grammar grammar;
-//    Parser parser;
+    //    Parser parser;
 
     if (clip.g()) {
         // TODO: handle conflict with p
         grammar.loadGrammar(clip.gFile());
-        if(clip.v()){
+        if (clip.v()) {
             grammar.printRules();
         }
-//        parser.buildTable();
+        //        parser.buildTable();
     }
 }

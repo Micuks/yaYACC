@@ -25,5 +25,6 @@ class Grammar {
     void printRules();
     Symbol *getSymbol(int tag);
     Terminal *matchTerminal(string str);
+    bool toEpsilonDirectly(Variable *sym);
 };
 #endif // !GRAMMAR_HPP
