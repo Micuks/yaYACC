@@ -338,7 +338,7 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
             }
         }
     } else {
-        throw std::runtime_error(std::string("ERROR: Unknowm Symbol Type: "));
+        throw std::runtime_error(std::string("ERROR: Unknown Symbol Type"));
     }
 
     // Resolve unresolved recursive follow() call.

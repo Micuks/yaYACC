@@ -32,6 +32,7 @@ add_executable(
         tests/test_rule.cpp
         tests/test_grammar.cpp
         tests/test_parser.cpp
+        tests/test_lex.cpp
         )
 
 # target_compile_definitions(
@@ -66,5 +67,6 @@ add_library(
         src/symbol.cpp
         src/rule.cpp
         src/grammar.cpp
-       src/parser.cpp
+        src/parser.cpp
+        src/lex.cpp
         )
