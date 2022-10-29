@@ -24,6 +24,10 @@ class ParserTest : public ::testing::Test {
         g4_7_ = new Grammar();
         g4_7_->loadGrammar("../grammars/g4.7.txt");
         p4_7_ = new Parser(g4_7_, true);
+
+        g4_4_ = new Grammar();
+        g4_4_->loadGrammar("../grammars/g4.4.txt");
+        p4_4_ = new Parser(g4_4_, true);
     }
 
     void TearDown() {
@@ -36,6 +40,9 @@ class ParserTest : public ::testing::Test {
 
         delete g4_7_;
         delete p4_7_;
+
+        delete g4_4_;
+        delete p4_4_;
     }
 
     Parser *p0_;
@@ -51,6 +58,9 @@ class ParserTest : public ::testing::Test {
 
     Grammar *g4_7_;
     Parser *p4_7_;
+
+    Grammar *g4_4_;
+    Parser *p4_4_;
 };
 
 TEST_F(ParserTest, isEmptyInitially) {
@@ -166,16 +176,29 @@ TEST_F(ParserTest, isFollowCorrect0) {
     EXPECT_EQ((*bosInASet)->getIdentifier(), "BOTTOM OF STACK");
 }
 
-TEST_F(ParserTest, isFirstCorrect4_7) {
-    Grammar *g = p4_7_->grammar;
-    p4_7_->printFirstTable();
+// TEST_F(ParserTest, isFirstCorrect4_7) {
+//     Grammar *g = p4_7_->grammar;
+//     p4_7_->printFirstTable();
+// }
+
+// TEST_F(ParserTest, isFollowCorrect4_7) {
+//     Grammar *g = p4_7_->grammar;
+//     g->printRules();
+//
+//     p4_7_->printFollowTable();
+// }
+
+TEST_F(ParserTest, isFirstCorrect4_4) {
+    Grammar *g = p4_4_->grammar;
+    g->printRules();
+    p4_4_->printFirstTable();
 }
 
-TEST_F(ParserTest, isFollowCorrect4_7) {
-    Grammar *g = p4_7_->grammar;
+TEST_F(ParserTest, isFollowCorrect4_4) {
+    Grammar *g = p4_4_->grammar;
     g->printRules();
 
-    p4_7_->printFollowTable();
+    p4_4_->printFollowTable();
 }
 
 // TEST_F(ParserTest, isFirstCorrect2) {

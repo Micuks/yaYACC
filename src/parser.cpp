@@ -71,13 +71,16 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
     auto &epsilon = grammar->epsilon;
 
 #ifdef DEBUG_PARSER_FIRST
-    std::cout << "s: " << *s << std::endl;
+    std::cout << "currSymbol: " << *s << std::endl;
 #endif // DEBUG_PARSER_FIRST
 
     if (s->getType() == SymbolType(terminal)) {
         firstSet.insert((Terminal *)s);
     } else {
         // s is non-terminal
+#ifdef DEBUG_PARSER_FIRST
+        std::cout << *s << " is non-terminal.\n";
+#endif // DEBUG_PARSER_FIRST
         vector<Rule> atLhsRules = grammar->atLhsRules((Variable *)s);
         for (auto &r : atLhsRules) {
 #ifdef DEBUG_PARSER_FIRST
@@ -86,9 +89,10 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
 
             // Check if r can go to epsilon
             Terminal *nonEpsilonTerminal = nullptr;
+            Variable *nonEpsilonVariable = nullptr;
             for (auto &sym : r.rhs) {
 #ifdef DEBUG_PARSER_FIRST
-                std::cout << "currSym: " << *sym
+                std::cout << "currSymInRhs: " << *sym
                           << ((sym->getType()) ? " [Terminal]" : " [Variable]")
                           << std::endl;
 #endif // DEBUG_PARSER_FIRST
@@ -96,15 +100,19 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
                     if (sym == epsilon) {
                         continue;
                     } else {
-                        if (grammar->toEpsilonDirectly((Variable *)sym)) {
+                        nonEpsilonTerminal = (Terminal *)sym;
+                        break;
+                    }
+                } else if (sym->getType() == SymbolType(variable)) {
+                    // First symbol at rule.rhs after epsilon is non-terminal.
+                    if (grammar->toEpsilonDirectly((Variable *)sym)) {
 #ifdef DEBUG_PARSER_FIRST
-                            std::cout << "toEpsilonDirectly" << std::endl;
+                        std::cout << "toEpsilonDirectly" << std::endl;
 #endif // DEBUG_PARSER_FIRST
-                            continue;
-                        } else {
-                            nonEpsilonTerminal = (Terminal *)sym;
-                            break;
-                        }
+                        continue;
+                    } else {
+                        // Add its First to FIRST(S).
+                        nonEpsilonVariable = (Variable *)sym;
                     }
                 }
             }
@@ -112,6 +120,11 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
                 // for S -> s1s2...sn, if s1s2...s_{i-1} -*> epsilon, add si
                 // to first(S).
                 firstSet.insert(nonEpsilonTerminal);
+            } else if (nonEpsilonVariable != nullptr) {
+                auto firstSetOfSym = first(nonEpsilonVariable);
+                for (auto &a : firstSetOfSym) {
+                    firstSet.insert(a);
+                }
             } else {
                 // If S -*> epsilon, add epsilon to first(S).
                 firstSet.insert((Terminal *)epsilon);
@@ -168,40 +181,56 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
 #ifdef DEBUG_PARSER
             std::cout << "posS: " << posS - r.rhs.begin() << std::endl;
 #endif // DEBUG_PARSER
-            bool hasEpsilon = true;
+
             // * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
             if (posS != r.rhs.end() - 1) {
+                bool hasEpsilon = true;
 #ifdef DEBUG_PARSER
-                std::cout << "currSymbol is not the last symbol. Add FIRST("
+                std::cout << "currVariable is not the last symbol. Add FIRST("
                           << **(posS + 1) << ")." << endl;
 #endif // DEBUG_PARSER
-                auto sNextSymbolFirstSet = first(*(posS + 1));
+                auto nextSymbolPos = posS + 1;
+                // If FIRST(current symbol) contains EPSILON,
+                //     take next symbol into consideration.
+                while (hasEpsilon && nextSymbolPos != r.rhs.end()) {
+                    hasEpsilon = false;
+                    auto sNextSymbolFirstSet = first(*nextSymbolPos);
 #ifdef DEBUG_PARSER
-                std::cout << "sNextSymbol: " << **(posS + 1)
-                          << "\nsNextSymbolFirstSet: " << std::endl;
-                for (auto &a : sNextSymbolFirstSet) {
-                    std::cout << *a << " ";
-                }
-                std::cout << std::endl;
-#endif // DEBUG_PARSER
-                for (auto &a : sNextSymbolFirstSet) {
-#ifdef DEBUG_PARSER
-                    std::cout << "currSymbolInFirstSet: " << *a << std::endl;
-#endif // DEBUG_PARSER
-                    if (a != epsilon) {
-                        followSet.insert(a);
-                        hasEpsilon = false;
+                    std::cout << "sNextSymbol: " << **(posS + 1)
+                              << "\nsNextSymbolFirstSet: " << std::endl;
+                    for (auto &a : sNextSymbolFirstSet) {
+                        std::cout << *a << " ";
                     }
-                }
+                    std::cout << std::endl;
+#endif // DEBUG_PARSER
+                    for (auto &a : sNextSymbolFirstSet) {
+#ifdef DEBUG_PARSER
+                        std::cout << "currSymbolInFirstSet: " << *a
+                                  << std::endl;
+#endif // DEBUG_PARSER
+                        if (a != epsilon) {
+                            followSet.insert(a);
+                        } else if (a == epsilon) {
+                            hasEpsilon = true;
+                        }
+                    }
 
-                // * if A -> aSB where EPSILON in FIRST(B), then add FOLLOW(A)
-                // to FOLLOW(S).
+                    // Move to next symbol
+                    nextSymbolPos++;
+                }
+                // * if A -> aSB where EPSILON in FIRST(B), then add
+                // FOLLOW(A) to FOLLOW(S).
                 if (hasEpsilon) {
+#ifdef DEBUG_PARSER
+                    std::cout << "Add FOLLOW(" << *(r.lhs) << ") to FOLLOW("
+                              << *s << ")\n";
+#endif // DEBUG_PARSER
                     auto followSetOfA = follow(r.lhs);
                     for (auto &a : followSetOfA) {
                         followSet.insert(a);
                     }
                 }
+
 #ifdef DEBUG_PARSER
                 std::cout << "followSet after insert: " << std::endl;
                 for (auto &a : followSet) {
@@ -210,15 +239,27 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                 std::cout << std::endl;
                 std::cout << "--- end of current rule ---" << std::endl;
 #endif // DEBUG_PARSER
-            } else {
+            } else if (posS == r.rhs.end() - 1) {
+                if (*(r.lhs) == *s) {
+                    // the last symbol of current rule.rhs is the same as
+                    // current rule.lhs. Skip it to avoid endless loop.
 #ifdef DEBUG_PARSER
-                std::cout << "currSymbol is the last symbol. Add FOLLOW("
-                          << *(r.lhs) << ")" << std::endl;
+                    std::cout
+                        << " the last symbol of current rule.rhs is the same "
+                           "as current rule.lhs. Skip it to avoid endless loop."
+                        << std::endl;
+#endif // DEBUG_PARSER
+                } else {
+
+#ifdef DEBUG_PARSER
+                    std::cout << "currSymbol is the last symbol. Add FOLLOW("
+                              << *(r.lhs) << ")" << std::endl;
 #endif // DEBUG_PARSER
        // * if A -> aS then add FOLLOW(A) to FOLLOW(S).
-                auto followSetOfA = follow(r.lhs);
-                for (auto &a : followSetOfA) {
-                    followSet.insert(a);
+                    auto followSetOfA = follow(r.lhs);
+                    for (auto &a : followSetOfA) {
+                        followSet.insert(a);
+                    }
                 }
 #ifdef DEBUG_PARSER
                 std::cout << "followSet after insert: " << std::endl;
