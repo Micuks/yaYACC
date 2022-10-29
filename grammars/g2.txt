@@ -1,0 +1,6 @@
+A -> <\+> T A | EPSILON
+B -> <\*> F B | EPSILON
+E -> T A
+F -> <\(> E <\)> | N
+N -> <[0-9]>
+T -> F B

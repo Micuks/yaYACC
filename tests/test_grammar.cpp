@@ -4,15 +4,21 @@
 #include <regex>
 #include <vector>
 
+// TODO: Write tests based on g2.txt
+
 class GrammarTest : public ::testing::Test {
   protected:
     void SetUp() {
         g1_.loadGrammar("../grammars/g1.txt");
         g1_.printRules();
+
+        g2_.loadGrammar("../grammars/g2.txt");
+        g2_.printRules();
     }
 
     Grammar g0_;
     Grammar g1_;
+    Grammar g2_;
 };
 
 TEST_F(GrammarTest, IsEmptyInitially) {
