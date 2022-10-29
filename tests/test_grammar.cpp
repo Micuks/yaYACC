@@ -6,7 +6,10 @@
 
 class GrammarTest : public ::testing::Test {
   protected:
-    void SetUp() { g1_.loadGrammar("../grammars/g1.txt"); }
+    void SetUp() {
+        g1_.loadGrammar("../grammars/g1.txt");
+        g1_.printRules();
+    }
 
     Grammar g0_;
     Grammar g1_;
@@ -54,61 +57,77 @@ TEST_F(GrammarTest, checkAtLhsRules) {
 
 TEST_F(GrammarTest, checkAtRhsRules) {
     Variable *A = new Variable(2, 1, "A");
+
+    std::cout << "------" << std::endl;
+    for (auto &a : g1_.atRhsRules(A)) {
+        std::cout << a;
+    }
+    std::cout << "------" << std::endl;
+
     auto atRhsRules = g1_.atRhsRules(A);
     EXPECT_EQ(atRhsRules.size(), 1);
 
-    for (auto &a : g1_.atRhsRules(A)) {
-        std::cout << a << " ";
-    }
-    std::cout << std::endl;
-
     Terminal *a = new Terminal(1, 0, "<a>", std::regex("a"));
+
+    std::cout << "------" << std::endl;
+    for (auto &a : g1_.atRhsRules(a)) {
+        std::cout << a;
+    }
+    std::cout << "------" << std::endl;
+
     atRhsRules = g1_.atRhsRules(a);
     EXPECT_EQ(atRhsRules.size(), 1);
-
-    for (auto &a : g1_.atRhsRules(A)) {
-        std::cout << a << " ";
-    }
-    std::cout << std::endl;
 
     delete A;
     delete a;
 }
 
 TEST_F(GrammarTest, checkGetSymbol) {
+    auto sm1 = g1_.getSymbol(-1);
+    ASSERT_NE(sm1, nullptr);
     EXPECT_EQ(g1_.getSymbol(-1)->getIdentifier(), "EPSILON");
-    EXPECT_EQ(g1_.getSymbol(0)->getIdentifier(), "S");
-    EXPECT_NE(g1_.getSymbol(10)->getIdentifier(), "A");
+
+    auto s0 = g1_.getSymbol(0);
+    ASSERT_NE(s0, nullptr);
+    EXPECT_EQ(s0->getIdentifier(), "S");
+
+    auto s10 = g1_.getSymbol(10);
+    ASSERT_EQ(s10, nullptr);
+
+    auto s2 = g1_.getSymbol(2);
+    EXPECT_EQ(s2->getIdentifier(), "A");
+
+    auto s1 = g1_.getSymbol(1);
+    EXPECT_EQ(s1->getIdentifier(), "<a>");
 }
 
 TEST_F(GrammarTest, checkMatchTerminal0) {
     auto bos = g1_.matchTerminal(std::string("BOTTOM OF STACK"));
-    ASSERT_NE(bos, nullptr);
-    EXPECT_EQ(bos->getIdentifier(), "BOTTOM OF STACK");
+    ASSERT_EQ(bos, nullptr);
 
     auto b = g1_.matchTerminal(std::string("b"));
     ASSERT_NE(b, nullptr);
-    EXPECT_EQ(b->getIdentifier(), "b");
+    EXPECT_EQ(b->getIdentifier(), "<b>");
 
     auto a = g1_.matchTerminal(std::string("a"));
     ASSERT_NE(a, nullptr);
-    EXPECT_EQ(g1_.matchTerminal(std::string("a"))->getIdentifier(), "a");
+    EXPECT_EQ(g1_.matchTerminal(std::string("a"))->getIdentifier(), "<a>");
 }
 
 TEST_F(GrammarTest, checkMatchTerminal1) {
     // TODO: Implement it
-    auto t0 = g1_.getSymbol(2);
+    auto t0 = g1_.getSymbol(1);
     auto S = g1_.getSymbol(0);
-    EXPECT_EQ(g1_.matchTerminal("a"), t0);
+    EXPECT_EQ(*(g1_.matchTerminal("a")), *t0);
     EXPECT_EQ(g1_.matchTerminal("S"), nullptr);
     // EXPECT_NE(g1_.matchTerminal("S"), S);
 }
 
 TEST_F(GrammarTest, checkToEpsilonDIrectly) {
     // TODO: Implement i
-    auto A = g1_.getSymbol(1);
+    auto A = g1_.getSymbol(2);
     auto S = g1_.getSymbol(0);
-    std::cout << "A: " << A << " S: " << S << std::endl;
+    std::cout << "A: " << *A << " S: " << *S << std::endl;
     EXPECT_TRUE(g1_.toEpsilonDirectly((Variable *)A));
     EXPECT_FALSE(g1_.toEpsilonDirectly((Variable *)S));
 }
