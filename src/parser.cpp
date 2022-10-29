@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include "rule.hpp"
 #include "symbol.hpp"
+#include <cassert>
 #include <iostream>
 #include <unordered_set>
 #include <vector>
@@ -8,16 +9,22 @@
 // class Parser
 // public:
 void Parser::parse(std::vector<Terminal *> *input) {}
+
 void Parser::makeTable() {}
+
 void Parser::importFromFile(const char *filename) {
     // TODO: Implement it
     return;
 }
+
 void Parser::exportToFile(const char *filename) {
     // TODO: Implement it
     return;
 }
+
 void Parser::printFirstTable() {
+    assert(grammar != nullptr);
+
     std::cout << "FIRST table:\n";
     auto &variables = grammar->variables;
 
@@ -32,6 +39,8 @@ void Parser::printFirstTable() {
 }
 
 void Parser::printFollowTable() {
+    assert(grammar != nullptr);
+
     std::cout << "FOLLOW table:\n";
     auto &variables = grammar->variables;
 
@@ -59,36 +68,51 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
     std::unordered_set<Terminal *> firstSet;
     auto &epsilon = grammar->epsilon;
 
+#ifdef DEBUG_PARSER
+    std::cout << "s: " << *s << std::endl;
+#endif // DEBUG_PARSER
+
     if (s->getType() == SymbolType(terminal)) {
         firstSet.insert((Terminal *)s);
     } else {
         // s is non-terminal
         vector<Rule> atLhsRules = grammar->atLhsRules((Variable *)s);
         for (auto &r : atLhsRules) {
+#ifdef DEBUG_PARSER
+            std::cout << "currRule: " << r;
+#endif // DEBUG_PARSER
+
             // Check if r can go to epsilon
             Terminal *nonEpsilonTerminal = nullptr;
             for (auto &sym : r.rhs) {
+#ifdef DEBUG_PARSER
+                std::cout << "currSym: " << *sym
+                          << ((sym->getType()) ? " [Terminal]" : " [Variable]")
+                          << std::endl;
+#endif // DEBUG_PARSER
                 if (sym->getType() == SymbolType(terminal)) {
                     if (sym == epsilon) {
                         continue;
-                    }
-                } else {
-                    if (grammar->toEpsilonDirectly((Variable *)sym)) {
-                        continue;
                     } else {
-                        nonEpsilonTerminal = (Terminal *)sym;
-                        break;
+                        if (grammar->toEpsilonDirectly((Variable *)sym)) {
+#ifdef DEBUG_PARSER
+                            std::cout << "toEpsilonDirectly" << std::endl;
+#endif // DEBUG_PARSER
+                            continue;
+                        } else {
+                            nonEpsilonTerminal = (Terminal *)sym;
+                            break;
+                        }
                     }
                 }
-
-                if (nonEpsilonTerminal != nullptr) {
-                    // for S -> s1s2...sn, if s1s2...s_{i-1} -*> epsilon, add si
-                    // to first(S).
-                    firstSet.insert(nonEpsilonTerminal);
-                } else {
-                    // If S -*> epsilon, add epsilon to first(S).
-                    firstSet.insert((Terminal *)epsilon);
-                }
+            }
+            if (nonEpsilonTerminal != nullptr) {
+                // for S -> s1s2...sn, if s1s2...s_{i-1} -*> epsilon, add si
+                // to first(S).
+                firstSet.insert(nonEpsilonTerminal);
+            } else {
+                // If S -*> epsilon, add epsilon to first(S).
+                firstSet.insert((Terminal *)epsilon);
             }
         }
     }
