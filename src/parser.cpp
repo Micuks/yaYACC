@@ -135,42 +135,49 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
  */
 std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
     std::unordered_set<Terminal *> followSet;
-    auto &epsilon = grammar->epsilon;
-    // Add $ to FOLLOW(S) if S is start symbol of grammar.
-    if (s == grammar->startSymbol) {
+    if (s->getType() == SymbolType(terminal)) {
+        // FOLLOW(s) = BOTTOM_OF_STACK if s is terminal
         followSet.insert(grammar->bos);
-    }
+    } else {
 
-    auto atRhsRuleSet = grammar->atRhsRules(s);
-    // * for each rule A -> ...S...,
-    for (auto &r : atRhsRuleSet) {
-        auto posS = std::find(r.rhs.begin(), r.rhs.end(), s);
-        bool hasEpsilon = true;
-        // * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
-        if (posS != r.rhs.end() - 1) {
-            auto sNextSymbolFirstSet = first(*(posS + 1));
-            for (auto &a : sNextSymbolFirstSet) {
-                if (a != epsilon) {
-                    followSet.insert(a);
-                    hasEpsilon = false;
+        auto &epsilon = grammar->epsilon;
+        // Add $ to FOLLOW(S) if S is start symbol of grammar.
+        if (s == grammar->startSymbol) {
+            followSet.insert(grammar->bos);
+        }
+
+        auto atRhsRuleSet = grammar->atRhsRules(s);
+        // * for each rule A -> ...S...,
+        for (auto &r : atRhsRuleSet) {
+            auto posS = std::find(r.rhs.begin(), r.rhs.end(), s);
+            bool hasEpsilon = true;
+            // * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
+            if (posS != r.rhs.end() - 1) {
+                auto sNextSymbolFirstSet = first(*(posS + 1));
+                for (auto &a : sNextSymbolFirstSet) {
+                    if (a != epsilon) {
+                        followSet.insert(a);
+                        hasEpsilon = false;
+                    }
                 }
-            }
 
-            // * if A -> aSB where EPSILON in FIRST(B), then add FOLLOW(A) to
-            // FOLLOW(S).
-            if (hasEpsilon) {
+                // * if A -> aSB where EPSILON in FIRST(B), then add FOLLOW(A)
+                // to FOLLOW(S).
+                if (hasEpsilon) {
+                    auto followSetOfA = follow(r.lhs);
+                    for (auto &a : followSetOfA) {
+                        followSet.insert(a);
+                    }
+                }
+            } else {
+                // * if A -> aS then add FOLLOW(A) to FOLLOW(S).
                 auto followSetOfA = follow(r.lhs);
                 for (auto &a : followSetOfA) {
                     followSet.insert(a);
                 }
             }
-        } else {
-            // * if A -> aS then add FOLLOW(A) to FOLLOW(S).
-            auto followSetOfA = follow(r.lhs);
-            for (auto &a : followSetOfA) {
-                followSet.insert(a);
-            }
         }
     }
+
     return followSet;
 }

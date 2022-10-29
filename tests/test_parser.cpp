@@ -88,29 +88,31 @@ TEST_F(ParserTest, isFirstCorrect) {
 TEST_F(ParserTest, isFollowEmptyCorrect) {
     auto &g = p1_->grammar;
     std::unordered_set<Terminal *> epsSet = p1_->follow(g->epsilon);
-    std::unordered_set<Terminal *> aSet = p1_->first(Ta);
+    std::unordered_set<Terminal *> aSet = p1_->follow(Ta);
 
     // Terminal EPSILON
+    std::cout << "FOLLOW(epsilon): ";
     for (auto &a : epsSet) {
-        std::cout << a << " ";
+        std::cout << *a << " ";
     }
     std::cout << std::endl;
-    // TODO: Write test for epsilon in ParserTest follow
-    // EXPECT_EQ(sSet.size(), 1);
-    // auto bosInSSet = std::find(sSet.begin(), sSet.end(), g.bos);
-    // ASSERT_NE(bosInSSet, nullptr);
-    // EXPECT_EQ(*bosInSSet.getIdentifier(), "BOTTOM OF STACK");
+
+    EXPECT_EQ(epsSet.size(), 1);
+    auto bosInSSet = std::find(epsSet.begin(), epsSet.end(), g->bos);
+    ASSERT_NE(bosInSSet, epsSet.end());
+    EXPECT_EQ((*bosInSSet)->getIdentifier(), "BOTTOM OF STACK");
 
     // Terminal a
+    std::cout << "FOLLOW(a): ";
     for (auto &a : aSet) {
-        std::cout << a << " ";
+        std::cout << *a << " ";
     }
     std::cout << std::endl;
-    // TODO: Write test for terminal a in ParserTest follow
-    // EXPECT_EQ(aSet.size(), 1);
-    // auto bosInASet = std::find(aSet.begin(), aSet.end(), g.bos);
-    // ASSERT_NE(bosInASet, nullptr);
-    // EXPECT_EQ(*bosInASet.getIdentifier(), "BOTTOM OF STACK");
+
+    EXPECT_EQ(aSet.size(), 1);
+    auto bosInASet = std::find(aSet.begin(), aSet.end(), g->bos);
+    ASSERT_NE(bosInASet, aSet.end());
+    EXPECT_EQ((*bosInASet)->getIdentifier(), "BOTTOM OF STACK");
 }
 
 TEST_F(ParserTest, isFollowCorrect) {
@@ -121,8 +123,9 @@ TEST_F(ParserTest, isFollowCorrect) {
     p1_->printFollowTable();
 
     // Start Symbol S
+    std::cout << "FOLLOW(S): ";
     for (auto &a : sSet) {
-        std::cout << a << " ";
+        std::cout << *a << " ";
     }
     std::cout << std::endl;
     EXPECT_EQ(sSet.size(), 1);
@@ -131,8 +134,9 @@ TEST_F(ParserTest, isFollowCorrect) {
     EXPECT_EQ((*bosInSSet)->getIdentifier(), "BOTTOM OF STACK");
 
     // Non-Terminal variable A
+    std::cout << "FOLLOW(A): ";
     for (auto &a : ASet) {
-        std::cout << a << " ";
+        std::cout << *a << " ";
     }
     std::cout << std::endl;
     EXPECT_EQ(ASet.size(), 1);

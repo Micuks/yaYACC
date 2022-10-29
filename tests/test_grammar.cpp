@@ -115,7 +115,6 @@ TEST_F(GrammarTest, checkMatchTerminal0) {
 }
 
 TEST_F(GrammarTest, checkMatchTerminal1) {
-    // TODO: Implement it
     auto t0 = g1_.getSymbol(1);
     auto S = g1_.getSymbol(0);
     EXPECT_EQ(*(g1_.matchTerminal("a")), *t0);
@@ -124,7 +123,6 @@ TEST_F(GrammarTest, checkMatchTerminal1) {
 }
 
 TEST_F(GrammarTest, checkToEpsilonDIrectly) {
-    // TODO: Implement i
     auto A = g1_.getSymbol(2);
     auto S = g1_.getSymbol(0);
     std::cout << "A: " << *A << " S: " << *S << std::endl;
