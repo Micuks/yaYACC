@@ -29,15 +29,26 @@ vector<Rule> Grammar::atLhsRules(Variable *v) {
 }
 
 vector<Rule> Grammar::atRhsRules(Symbol *s) {
+    cout << "s: " << (*s).toString() << endl;
     vector<Rule> retVec;
     for (Rule r : rules) {
 #ifdef DEBUG_GRAMMAR
-        cout << "r: " << r;
+        cout << "r: " << r << "r.rhs.size: " << r.rhs.size() << endl;
 #endif // DEBUG_GRAMMAR
         auto a = find(r.rhs.begin(), r.rhs.end(), s);
+        bool inRRhs = false;
+        for (auto &a : r.rhs) {
+            if (*a == *s) {
+                inRRhs = true;
+                break;
+            }
+        }
 #ifdef DEBUG_GRAMMAR
-        cout << "a: " << a;
+        cout << "pos_s: " << (a - r.rhs.begin())
+             << " s: " << ((*a == nullptr) ? "nullptr" : (**a).toString())
+             << endl;
 #endif // DEBUG_GRAMMAR
+       // if(inRRhs) {
         if (a != r.rhs.end()) {
             // if (s->getType() == SymbolType(variable) && r.lhs != s) {
             //     retVec.push_back(r);

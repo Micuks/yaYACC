@@ -9,6 +9,12 @@ string Symbol::toString() const {
        << this->getIdentifier() << "]";
     return ss.str();
 }
+
+ostream &operator<<(ostream &os, const Symbol &sym) {
+    os << sym.getIdentifier();
+    return os;
+}
+
 // Variable
 ostream &operator<<(ostream &os, const Variable &sym) {
     os << sym.getIdentifier();

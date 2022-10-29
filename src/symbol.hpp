@@ -25,6 +25,8 @@ class Symbol {
         // TODO: Implement !=
     }
 
+    friend ostream &operator<<(ostream &os, const Symbol &sym);
+
   private:
     int tag;
     int index;
