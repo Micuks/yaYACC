@@ -176,10 +176,10 @@ TEST_F(ParserTest, isFollowCorrect0) {
     EXPECT_EQ((*bosInASet)->getIdentifier(), "BOTTOM OF STACK");
 }
 
-// TEST_F(ParserTest, isFirstCorrect4_7) {
-//     Grammar *g = p4_7_->grammar;
-//     p4_7_->printFirstTable();
-// }
+TEST_F(ParserTest, isFirstCorrect4_7) {
+    Grammar *g = p4_7_->grammar;
+    p4_7_->printFirstTable();
+}
 
 // TEST_F(ParserTest, isFollowCorrect4_7) {
 //     Grammar *g = p4_7_->grammar;
@@ -201,73 +201,47 @@ TEST_F(ParserTest, isFollowCorrect4_4) {
     p4_4_->printFollowTable();
 }
 
-// TEST_F(ParserTest, isFirstCorrect2) {
-//
-//     // test for all variables in parser
-//     Grammar *&g = p2_->grammar;
-//     g->printRules();
-//
-//     std::cout << "variables: " << std::endl;
-//     for (auto &a : g->variables) {
-//         std::cout << a->toString() << ", ";
-//     }
-//     std::cout << std::endl;
-//     std::cout << "Terminals:" << std::endl;
-//     for (auto &a : g->terminals) {
-//         std::cout << a->toString() << ", ";
-//     }
-//     std::cout << std::endl << std::endl;
-//
-//     p2_->printFirstTable();
-//
-//     std::cout << "\nTarget FIRST(A):" << endl;
-//     std::cout << "A: +,EPSILON\n"
-//               << "T: (, [0-9]\n"
-//               << "B: *,EPSILON\n"
-//               << "F: (, [0-9]\n"
-//               << "E: (, [0-9]\n"
-//               << "N: [0-1]\n"
-//               << std::endl;
-//
-//     // Start variable A
-//     std::unordered_set<Terminal *> ASet = p2_->first(g2_->getSymbol(0));
-//     std::cout << "FIRST(A): ";
-//     for (auto &a : ASet) {
-//         std::cout << (*a).toString() << " ";
-//     }
-//     std::cout << "" << std::endl;
-// }
+TEST_F(ParserTest, isFirstCorrect2) {
 
-// TEST_F(ParserTest, isFollowCorrect2) {
-//     std::unordered_set<Terminal *> sSet = p2_->follow(S);
-//     std::unordered_set<Terminal *> ASet = p2_->follow(A);
-//     auto &g = p2_->grammar;
-//
-//     g->printRules();
-//
-//     p2_->printFollowTable();
-//
-//     // Start Symbol S
-//     std::cout << "FOLLOW(S): ";
-//     for (auto &a : sSet) {
-//         std::cout << *a << " ";
-//     }
-//     std::cout << std::endl;
-//     EXPECT_EQ(sSet.size(), 1);
-//     auto bosInSSet = std::find(sSet.begin(), sSet.end(), g->bos);
-//     ASSERT_NE(bosInSSet, sSet.end());
-//     EXPECT_EQ((*bosInSSet)->getIdentifier(), "BOTTOM OF STACK");
-//
-//     // Non-Terminal variable A
-//     std::cout << "FOLLOW(A): ";
-//     for (auto &a : ASet) {
-//         std::cout << *a << " ";
-//     }
-//     std::cout << std::endl;
-//     EXPECT_EQ(ASet.size(), 1);
-//     auto bosInASet = std::find(ASet.begin(), ASet.end(), g->bos);
-//     ASSERT_NE(bosInASet, ASet.end());
-//     EXPECT_EQ((*bosInASet)->getIdentifier(), "BOTTOM OF STACK");
-//
-//     // TODO: Write another test for a more complex grammar
-// }
+    // test for all variables in parser
+    Grammar *&g = p2_->grammar;
+    g->printRules();
+
+    std::cout << "variables: " << std::endl;
+    for (auto &a : g->variables) {
+        std::cout << a->toString() << ", ";
+    }
+    std::cout << std::endl;
+    std::cout << "Terminals:" << std::endl;
+    for (auto &a : g->terminals) {
+        std::cout << a->toString() << ", ";
+    }
+    std::cout << std::endl << std::endl;
+
+    p2_->printFirstTable();
+
+    std::cout << "\nTarget FIRST(A):" << endl;
+    std::cout << "A: +,EPSILON\n"
+              << "T: (, [0-9]\n"
+              << "B: *,EPSILON\n"
+              << "F: (, [0-9]\n"
+              << "E: (, [0-9]\n"
+              << "N: [0-1]\n"
+              << std::endl;
+
+    // Start variable A
+    std::unordered_set<Terminal *> ASet = p2_->first(g2_->getSymbol(0));
+    std::cout << "FIRST(A): ";
+    for (auto &a : ASet) {
+        std::cout << (*a).toString() << " ";
+    }
+    std::cout << "" << std::endl;
+    ASSERT_EQ(ASet.size(), 2);
+}
+
+TEST_F(ParserTest, isFollowCorrect2) {
+    auto &g = p2_->grammar;
+    g->printRules();
+
+    p2_->printFollowTable();
+}

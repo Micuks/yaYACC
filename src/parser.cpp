@@ -67,6 +67,26 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
      * for S -> s1s2...sn, if s1s2...s{i-1} -*> epsilon, add si to first(S).
      *
      */
+
+    // First check if FIRST(s) has already been calculated.
+    // If FIRST(s) is found in firstDict, return it directly.
+    if (firstDict.find(s) != firstDict.end()) {
+#ifdef DEBUG_PARSER
+        std::cout << "FIRST(" << *s
+                  << ") is alreay in firstDict. Return cached "
+                     "followDict: \n";
+        for (auto &a : *(firstDict.at(s))) {
+            std::cout << *a << " ";
+        }
+        std::cout << std::endl;
+#endif // DEBUG_PARSER
+        return *(firstDict.at(s));
+    }
+
+    // If not found, calculate it.
+#ifdef DEBUG_PARSER
+    std::cout << *s << " not found in firstDict. Calculate it.\n";
+#endif // DEBUG_PARSER
     std::unordered_set<Terminal *> firstSet;
     auto &epsilon = grammar->epsilon;
 
@@ -132,6 +152,15 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
         }
     }
 
+    // Put firstSet to firstDict
+#ifdef DEBUG_PARSER
+    std::cout << "add [ " << *s << ", { ";
+    for (auto &a : firstSet) {
+        std::cout << *a << ", ";
+    }
+    std::cout << "} ] to firstDict.\n";
+#endif // DEBUG_PARSER
+    firstDict[s] = new std::unordered_set<Terminal *>(firstSet);
     return firstSet;
 }
 
@@ -147,8 +176,30 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
  * if A -> aSB where EPSILON in FIRST(B), then add FOLLOW(A) to FOLLOW(S).
  *
  * if A -> aS then add FOLLOW(A) to FOLLOW(S).
+ *
+ * TODO: Fix bug of endless recursion appeared in example 4.7 test.
  */
 std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
+
+    // First check if FOLLOW(s) has already been calculated.
+    // If FOLLOW(s) is found in followDict, return it directly.
+    if (followDict.find(s) != followDict.end()) {
+#ifdef DEBUG_PARSER
+        std::cout << "FOLLOW(" << *s
+                  << ") is alreay in followDict. Return cached "
+                     "followDict: \n";
+        for (auto &a : *(followDict.at(s))) {
+            std::cout << *a << " ";
+        }
+        std::cout << std::endl;
+#endif // DEBUG_PARSER
+        return *(followDict.at(s));
+    }
+
+    // If not found, calculate it.
+#ifdef DEBUG_PARSER
+    std::cout << *s << " not found in followDict. Calculate it.\n";
+#endif // DEBUG_PARSER
     std::unordered_set<Terminal *> followSet;
     if (s->getType() == SymbolType(terminal)) {
         // FOLLOW(s) = BOTTOM_OF_STACK if s is terminal
@@ -194,10 +245,13 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                 //     take next symbol into consideration.
                 while (hasEpsilon && nextSymbolPos != r.rhs.end()) {
                     hasEpsilon = false;
+#ifdef DEBUG_PARSER
+                    std::cout << "sNextSymbol: " << **nextSymbolPos
+                              << std::endl;
+#endif // DEBUG_PARSER
                     auto sNextSymbolFirstSet = first(*nextSymbolPos);
 #ifdef DEBUG_PARSER
-                    std::cout << "sNextSymbol: " << **(posS + 1)
-                              << "\nsNextSymbolFirstSet: " << std::endl;
+                    std::cout << "\nsNextSymbolFirstSet: " << std::endl;
                     for (auto &a : sNextSymbolFirstSet) {
                         std::cout << *a << " ";
                     }
@@ -225,9 +279,21 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                     std::cout << "Add FOLLOW(" << *(r.lhs) << ") to FOLLOW("
                               << *s << ")\n";
 #endif // DEBUG_PARSER
-                    auto followSetOfA = follow(r.lhs);
-                    for (auto &a : followSetOfA) {
-                        followSet.insert(a);
+
+                    // S is the same as A. Skip it to avoid endless loop.
+                    if (*(r.lhs) == *s) {
+#ifdef DEBUG_PARSER
+                        std::cout
+                            << "rule.lhs is the same as S. Skip it to avoid "
+                               "endless loop."
+                            << std::endl;
+#endif // DEBUG_PARSER
+                    } else {
+
+                        auto followSetOfA = toResolveFollow(r.lhs);
+                        for (auto &a : followSetOfA) {
+                            followSet.insert(a);
+                        }
                     }
                 }
 
@@ -256,7 +322,7 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                               << *(r.lhs) << ")" << std::endl;
 #endif // DEBUG_PARSER
        // * if A -> aS then add FOLLOW(A) to FOLLOW(S).
-                    auto followSetOfA = follow(r.lhs);
+                    auto followSetOfA = toResolveFollow(r.lhs);
                     for (auto &a : followSetOfA) {
                         followSet.insert(a);
                     }
@@ -275,5 +341,24 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
         throw std::runtime_error(std::string("ERROR: Unknowm Symbol Type: "));
     }
 
+    // Resolve unresolved recursive follow() call.
+    followSet = resolveFollow(s, followSet);
+
+#ifdef DEBUG_PARSER
+    std::cout << "add [ " << *s << ", { ";
+    for (auto &a : followSet) {
+        std::cout << *a << ", ";
+    }
+    std::cout << "} ] to followDict.\n";
+#endif // DEBUG_PARSER
+    followDict[s] = new std::unordered_set<Terminal *>(followSet);
+    return followSet;
+}
+
+std::unordered_set<Terminal *> Parser::toResolveFollow(Symbol *rSym) {
+    return follow(rSym);
+}
+std::unordered_set<Terminal *> &
+Parser::resolveFollow(Symbol *s, std::unordered_set<Terminal *> &followSet) {
     return followSet;
 }
