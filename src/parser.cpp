@@ -3,17 +3,91 @@
 #include "symbol.hpp"
 #include <cassert>
 #include <exception>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
 
 // class Parser
 // public:
-void Parser::parse(std::vector<Terminal *> *input) {}
+void Parser::parse(std::vector<Terminal *> *tokens) {
+    std::stack<Symbol *> pda = std::stack<Symbol *>();
+    const Grammar *g = grammar;
+
+    int currPos = 0;
+    std::vector<Terminal *>::iterator it = (*tokens).begin();
+
+    pda.push(g->bos);
+    pda.push(g->startSymbol);
+
+    while (pda.size()) {
+        const Terminal *token = *it;
+        Symbol *tos = pda.top(); // Top of stack
+
+        // Try to match curent terminal in token with symbol at the top of
+        // stack.
+        if (token->getTag() == (tos->getTag())) {
+            // tos matches token
+            if (verbose) {
+                std::cout << "Symbol matched: " << tos->getIdentifier()
+                          << std::endl;
+            }
+            it++;
+            currPos++;
+            pda.pop();
+        } else {
+            // Tos failed to match, push symbols onto stack.
+            if (tos->getType() == SymbolType(terminal)) {
+
+                // Error occurred, unmatch terminal on top of stack
+                throw std::runtime_error(
+                    std::string("ERROR: Unknown symbol at position ") +
+                    std::to_string(it - tokens->begin()) +
+                    std::string(". REJECT INPUT STRING."));
+            } else {
+
+                // Get parseTable[variable][terminal].
+                int ruleIdx = parseTable[tos->getIndex()][token->getIndex()];
+                if (ruleIdx == -1) {
+
+                    throw std::runtime_error(
+                        std::string("ERROR: No entry of rule at position ") +
+                        std::to_string(it - tokens->begin()) +
+                        std::string(". REJECT INPUT STRING."));
+                } else {
+
+                    if (verbose) {
+                        std::cout << "rule: " << g->rules[ruleIdx] << std::endl;
+                    }
+                }
+
+                Rule r = g->rules[ruleIdx];
+                pda.pop();
+                if (!r.leadToEpsilon(g->epsilon)) {
+                    for (std::vector<Symbol *>::reverse_iterator ri =
+                             r.rhs.rbegin();
+                         ri != r.rhs.rend(); ri++) {
+                        pda.push(*ri);
+                    }
+                }
+            }
+        }
+    }
+    if (verbose) {
+        std::cout << std::endl;
+    }
+    std::cout << "INPUT ACCEPTED" << std::endl;
+}
 
 void Parser::dropTable() {
     if (parseTable) {
+#ifdef DEBUG_PARSER
+        std::cout << "ParseTable != nullptr. Drop table. lenParseTable: "
+                  << lenParseTable << "\n";
+#endif // DEBUG_PARSER
         for (int i = 0; i < lenParseTable; i++) {
             int *tupleI = parseTable[i];
             if (tupleI) {
@@ -30,6 +104,9 @@ void Parser::makeTable() {
     dropTable();
     // Create new parseTable
     lenParseTable = grammar->variables.size();
+#ifdef DEBUG_PARSER
+    std::cout << "lenParseTable: " << lenParseTable << std::endl;
+#endif // DEBUG_PARSER
     parseTable = new int *[lenParseTable];
     for (int i = 0; i < lenParseTable; i++) {
         parseTable[i] = new int[grammar->terminals.size()];
@@ -69,35 +146,59 @@ void Parser::makeTable() {
                 if (t == bos) {
                     bosExists = true;
                 } else {
-                    parseTable[A->getIndex()][bos->getIndex()] = i;
+                    parseTable[A->getIndex()][t->getIndex()] = i;
                 }
             }
 
-            // Add A->a... to M[A, $] if epsilon in FIRST(a) and $ in FOLLOW(A).
+            // Add A->a... to M[A, $] if EPSILON in FIRST(a) and $ in FOLLOW(A).
             if (bosExists) {
+#ifdef DEBUG_PARSER
+                std::cout << "EPSILON in FIRST(a) and $ in FOLLOW(A). Add "
+                          << currRule << " to parseTable[" << A->getIndex()
+                          << "][" << bos->getIndex() << "]\n";
+#endif // DEBUG_PARSER
                 parseTable[A->getIndex()][bos->getIndex()] = i;
             }
         }
     }
 }
 
-void Parser::printParseTable() {
+std::string Parser::parseTableToString() {
+    stringstream ss;
     // TODO: If this prints incorrect parseTable, change to index by
     // A->getIndex()
-    std::cout << "~\t";
+    const int fixedWidth = 17;
+    const char separator = ' ';
+    ss << std::left << std::setw(fixedWidth) << std::setfill(separator)
+       << "VARIABLE";
     for (auto &a : grammar->terminals) {
-        std::cout << a << "\t";
+        ss << std::left << std::setw(fixedWidth) << std::setfill(separator)
+           << *(a);
     }
-    std::cout << std::endl;
+    ss << std::endl;
+
     for (int i = 0; i < lenParseTable; i++) {
-        std::cout << "[" << grammar->variables[i] << "]"
-                  << ":\t";
+        // assert(grammar->variables[i] != nullptr);
+        ss << std::left << std::setw(fixedWidth) << std::setfill(separator)
+           << *(grammar->variables[i]);
+
         for (int j = 0; j < grammar->terminals.size(); j++) {
-            std::cout << parseTable[i][j] << " |\t";
+            int ruleIdx = parseTable[i][j];
+
+            if (ruleIdx == -1) {
+                ss << std::setw(fixedWidth) << std::left
+                   << std::setfill(separator) << "error";
+            } else {
+                ss << std::setw(fixedWidth) << std::left
+                   << std::setfill(separator) << grammar->rules[ruleIdx];
+            }
         }
-        std::cout << std::endl;
+        ss << std::endl;
     }
+    return ss.str();
 }
+
+void Parser::printParseTable() { std::cout << parseTableToString(); }
 
 void Parser::importFromFile(const char *filename) {
     // TODO: Implement it
@@ -269,7 +370,7 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
     // First check if FOLLOW(s) has already been calculated.
     // If FOLLOW(s) is found in followDict, return it directly.
     if (followDict.find(s) != followDict.end()) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
         std::cout << "FOLLOW(" << *s
                   << ") is alreay in followDict. Return cached "
                      "followDict: \n";
@@ -277,76 +378,76 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
             std::cout << *a << " ";
         }
         std::cout << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
         return *(followDict.at(s));
     }
 
     // If not found, calculate it.
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
     std::cout << *s << " not found in followDict. Calculate it.\n";
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
     std::unordered_set<Terminal *> followSet;
     if (s->getType() == SymbolType(terminal)) {
         // FOLLOW(s) = BOTTOM_OF_STACK if s is terminal
         followSet.insert(grammar->bos);
     } else if (s->getType() == SymbolType(variable)) {
 
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
         std::cout << "currVariable: " << *s << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
 
         auto &epsilon = grammar->epsilon;
         // Add $ to FOLLOW(S) if S is start symbol of grammar.
         if (s == grammar->startSymbol) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
             std::cout << *s << " is start symbol. Insert [" << *(grammar->bos)
                       << "]" << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
             followSet.insert(grammar->bos);
         }
 
         auto atRhsRuleSet = grammar->atRhsRules(s);
         // * for each rule A -> ...S...,
         for (auto &r : atRhsRuleSet) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
             std::cout << "------------" << std::endl;
             std::cout << "currRule: " << r;
             std::cout << "rule.rhs.size: " << r.rhs.size() << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
             auto posS = std::find(r.rhs.begin(), r.rhs.end(), s);
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
             std::cout << "posS: " << posS - r.rhs.begin() << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
 
             // * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
             if (posS != r.rhs.end() - 1) {
                 bool hasEpsilon = true;
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                 std::cout << "currVariable is not the last symbol. Add FIRST("
                           << **(posS + 1) << ")." << endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                 auto nextSymbolPos = posS + 1;
                 // If FIRST(current symbol) contains EPSILON,
                 //     take next symbol into consideration.
                 while (hasEpsilon && nextSymbolPos != r.rhs.end()) {
                     hasEpsilon = false;
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                     std::cout << "sNextSymbol: " << **nextSymbolPos
                               << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                     auto sNextSymbolFirstSet = first(*nextSymbolPos);
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                     std::cout << "\nsNextSymbolFirstSet: " << std::endl;
                     for (auto &a : sNextSymbolFirstSet) {
                         std::cout << *a << " ";
                     }
                     std::cout << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                     for (auto &a : sNextSymbolFirstSet) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                         std::cout << "currSymbolInFirstSet: " << *a
                                   << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                         if (a != epsilon) {
                             followSet.insert(a);
                         } else if (a == epsilon) {
@@ -360,19 +461,19 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                 // * if A -> aSB where EPSILON in FIRST(B), then add
                 // FOLLOW(A) to FOLLOW(S).
                 if (hasEpsilon) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                     std::cout << "Add FOLLOW(" << *(r.lhs) << ") to FOLLOW("
                               << *s << ")\n";
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
 
                     // S is the same as A. Skip it to avoid endless loop.
                     if (*(r.lhs) == *s) {
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                         std::cout
                             << "rule.lhs is the same as S. Skip it to avoid "
                                "endless loop."
                             << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                     } else {
 
                         auto followSetOfA = toResolveFollow(r.lhs);
@@ -382,44 +483,44 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
                     }
                 }
 
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                 std::cout << "followSet after insert: " << std::endl;
                 for (auto &a : followSet) {
                     std::cout << *a << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "--- end of current rule ---" << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
             } else if (posS == r.rhs.end() - 1) {
                 if (*(r.lhs) == *s) {
                     // the last symbol of current rule.rhs is the same as
                     // current rule.lhs. Skip it to avoid endless loop.
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                     std::cout
                         << " the last symbol of current rule.rhs is the same "
                            "as current rule.lhs. Skip it to avoid endless loop."
                         << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
                 } else {
 
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                     std::cout << "currSymbol is the last symbol. Add FOLLOW("
                               << *(r.lhs) << ")" << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
        // * if A -> aS then add FOLLOW(A) to FOLLOW(S).
                     auto followSetOfA = toResolveFollow(r.lhs);
                     for (auto &a : followSetOfA) {
                         followSet.insert(a);
                     }
                 }
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
                 std::cout << "followSet after insert: " << std::endl;
                 for (auto &a : followSet) {
                     std::cout << *a << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "--- end of current rule ---" << std::endl;
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
             }
         }
     } else {
@@ -429,13 +530,13 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
     // Resolve unresolved recursive follow() call.
     followSet = resolveFollow(s, followSet);
 
-#ifdef DEBUG_PARSER
+#ifdef DEBUG_PARSER_FOLLOW
     std::cout << "add [ " << *s << ", { ";
     for (auto &a : followSet) {
         std::cout << *a << ", ";
     }
     std::cout << "} ] to followDict.\n";
-#endif // DEBUG_PARSER
+#endif // DEBUG_PARSER_FOLLOW
     followDict[s] = new std::unordered_set<Terminal *>(followSet);
     return followSet;
 }

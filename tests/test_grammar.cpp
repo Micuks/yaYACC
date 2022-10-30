@@ -66,18 +66,18 @@ TEST_F(GrammarTest, checkAtRhsRules) {
 
     std::cout << "------" << std::endl;
     for (auto &a : g1_.atRhsRules(A)) {
-        std::cout << a;
+        std::cout << a << std::endl;
     }
     std::cout << "------" << std::endl;
 
     auto atRhsRules = g1_.atRhsRules(A);
     EXPECT_EQ(atRhsRules.size(), 1);
 
-    Terminal *a = new Terminal(1, 0, "<a>", std::regex("a"));
+    Terminal *a = new Terminal(1, 1, "<a>", std::regex("a"));
 
     std::cout << "------" << std::endl;
     for (auto &a : g1_.atRhsRules(a)) {
-        std::cout << a;
+        std::cout << a << std::endl;
     }
     std::cout << "------" << std::endl;
 

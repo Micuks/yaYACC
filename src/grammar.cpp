@@ -66,6 +66,9 @@ void Grammar::loadGrammar(const char *filename) {
         exit(EXIT_FAILURE);
     }
 
+    // Add bottom of stack symbol to terminals
+    terminals.push_back(bos);
+
     string line;
     while (getline(file, line)) {
         if (line.length() == 0) {
@@ -151,8 +154,6 @@ void Grammar::loadGrammar(const char *filename) {
     }
     // Set start symbol
     startSymbol = variables[0];
-    // Add bottom of stack symbol to terminals
-    terminals.push_back(bos);
     file.close();
 }
 
@@ -162,8 +163,8 @@ void Grammar::printRules() {
     for (auto &a : rules) {
         cout << cnt++ << ": ";
         a.printRule();
+        cout << endl;
     }
-    cout << endl;
 }
 
 Symbol *Grammar::getSymbol(int tag) {

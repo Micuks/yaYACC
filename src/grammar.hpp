@@ -16,7 +16,7 @@ class Grammar {
 
     Variable *startSymbol;
     Terminal *epsilon = new Terminal(-1, -1, "EPSILON", regex(""));
-    Terminal *bos = new Terminal(-3, -3, "BOTTOM OF STACK", regex(""));
+    Terminal *bos = new Terminal(-2, 0, "BOTTOM OF STACK", regex(""));
 
     vector<Rule> atLhsRules(Variable *v);
     vector<Rule> atRhsRules(Symbol *s);

@@ -1,5 +1,5 @@
-#ifndef LEXER_HPP
-#define LEXER_HPP
+#ifndef LEX_HPP
+#define LEX_HPP
 
 #include "grammar.hpp"
 #include <string>
@@ -16,4 +16,4 @@ class Lex {
     Grammar *g;
     bool verbose;
 };
-#endif // !LEXER_HPP
+#endif // !LEX_HPP

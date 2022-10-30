@@ -14,7 +14,19 @@ class Parser {
     Parser(Grammar *g, bool verbose)
         : grammar(g), verbose(verbose), lenParseTable(0) {}
 
-    void parse(std::vector<Terminal *> *input);
+    ~Parser() {
+        dropTable();
+
+        for (auto &[k, v] : firstDict) {
+            delete v;
+        }
+
+        for (auto &[k, v] : followDict) {
+            delete v;
+        }
+    }
+
+    void parse(std::vector<Terminal *> *tokens);
 
     void makeTable();
     void dropTable();
@@ -24,6 +36,8 @@ class Parser {
 
     void printFirstTable();
     void printFollowTable();
+
+    std::string parseTableToString();
     void printParseTable();
 
     // private:
@@ -42,8 +56,6 @@ class Parser {
 
     std::unordered_map<Symbol *, std::unordered_set<Terminal *> *> firstDict;
     std::unordered_map<Symbol *, std::unordered_set<Terminal *> *> followDict;
-    // TODO: Implement destructor function to free allocated memory space for
-    // firstDict, followDict, etc.
 };
 
 #endif // !PARSER_H

@@ -10,8 +10,12 @@ class Rule {
   public:
     Rule() : lhs(nullptr) {}
     Rule(Variable *lhs, vector<Symbol *> rhs) : lhs(lhs), rhs(std::move(rhs)) {}
+
+    bool leadToEpsilon(const Symbol *epsilon);
+
     void printRule();
-    // string toString();
+    string toString();
+
     Variable *lhs;
     vector<Symbol *> rhs;
 };
