@@ -1,6 +1,6 @@
 #ifndef RULE_HPP
 #define RULE_HPP
-
+#include "main.hpp"
 #include "symbol.hpp"
 #include <utility>
 #include <vector>

@@ -1,5 +1,6 @@
 #ifndef SYMBOL_HPP
 #define SYMBOL_HPP
+#include "main.hpp"
 
 #include <regex>
 #include <string>

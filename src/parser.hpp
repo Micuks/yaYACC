@@ -1,5 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include "main.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -40,7 +41,7 @@ class Parser {
     std::string parseTableToString();
     void printParseTable();
 
-    // private:
+  private:
     std::unordered_set<Terminal *> first(Symbol *s);
     std::unordered_set<Terminal *> follow(Symbol *s);
 
@@ -48,6 +49,10 @@ class Parser {
     std::unordered_set<Terminal *> toResolveFollow(Symbol *rSym);
     std::unordered_set<Terminal *> &
     resolveFollow(Symbol *s, std::unordered_set<Terminal *> &followSet);
+
+    std::string stackToString(std::stack<Symbol *> pda);
+    std::string remainingTokensToString(std::vector<Terminal *>::iterator it,
+                                        std::vector<Terminal *> *tokens);
 
     int **parseTable;
     int lenParseTable;

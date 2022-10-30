@@ -1,5 +1,6 @@
 #ifndef GRAMMAR_HPP
 #define GRAMMAR_HPP
+#include "main.hpp"
 #include <iostream>
 #include <regex>
 #include <vector>

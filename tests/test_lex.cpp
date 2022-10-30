@@ -8,8 +8,7 @@
 class LexTest : public ::testing::Test {
   protected:
     void SetUp() {
-        g0_ = new Grammar();
-        l0_ = new Lex(g0_, true);
+        l0_ = new Lex();
 
         g1_ = new Grammar();
         g1_->loadGrammar("../grammars/g1.txt");
@@ -21,7 +20,6 @@ class LexTest : public ::testing::Test {
     }
 
     void TearDown() {
-        delete g0_;
         delete l0_;
 
         delete g1_;
@@ -31,7 +29,6 @@ class LexTest : public ::testing::Test {
         delete l2_;
     }
 
-    Grammar *g0_;
     Lex *l0_;
 
     Grammar *g1_;
@@ -44,7 +41,7 @@ class LexTest : public ::testing::Test {
     std::string str1_1_ = std::string("aan");
 
     std::string str2_0_ = std::string("1+2+3+");
-    std::string str2_1_ = std::string("423*384*2 3");
+    std::string str2_1_ = std::string("423*384*23");
     std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
     std::string str2_21_ = std::string("(33+34)*45)32+8*(3*1+3)");
     std::string str2_3_ =
@@ -52,7 +49,7 @@ class LexTest : public ::testing::Test {
                                                 // pass LL(1) parse process.
 };
 
-TEST_F(LexTest, isEmptyInitially) { EXPECT_EQ(l0_->g->rules.size(), 0); }
+TEST_F(LexTest, isEmptyInitially) { EXPECT_EQ(l0_->g, nullptr); }
 
 TEST_F(LexTest, tokenize1) {
     std::cout << "Accepted tokens: \n";
@@ -92,24 +89,24 @@ TEST_F(LexTest, tokenize2) {
     std::cout << "Tokenize [" << str2_1_ << "]:\n";
     std::vector<Terminal *> *tok2_1_ = l2_->tokenize(str2_1_);
 
-    // std::cout << "Tokenize [" << str2_21_ << "]:\n";
-    // std::vector<Terminal *> *tok2_21_ = l2_->tokenize(str2_21_);
-    //
-    // std::cout << "Tokenize [" << str2_2_ << "]:\n";
-    // std::cout << "This tokenization is expected to throw an exception.\n";
-    // try {
-    //     std::vector<Terminal *> *tok2_2_ = l2_->tokenize(str2_2_);
-    // } catch (std::exception &e) {
-    //     std::cout << e.what() << std::endl;
-    //     EXPECT_STREQ(e.what(), "ERROR: Invalid token: /");
-    // }
-    //
-    // std::cout << "Tokenize [" << str2_3_ << "]:\n";
-    // std::cout << "This tokenization is expected to throw an exception.\n";
-    // try {
-    //     std::vector<Terminal *> *tok2_3_ = l2_->tokenize(str2_3_);
-    // } catch (std::exception &e) {
-    //     std::cout << e.what() << std::endl;
-    //     EXPECT_STREQ(e.what(), "ERROR: Invalid token: -");
-    // }
+    std::cout << "Tokenize [" << str2_21_ << "]:\n";
+    std::vector<Terminal *> *tok2_21_ = l2_->tokenize(str2_21_);
+
+    std::cout << "Tokenize [" << str2_2_ << "]:\n";
+    std::cout << "This tokenization is expected to throw an exception.\n";
+    try {
+        std::vector<Terminal *> *tok2_2_ = l2_->tokenize(str2_2_);
+    } catch (std::exception &e) {
+        std::cout << e.what() << std::endl;
+        EXPECT_STREQ(e.what(), "ERROR: Invalid token: /");
+    }
+
+    std::cout << "Tokenize [" << str2_3_ << "]:\n";
+    std::cout << "This tokenization is expected to throw an exception.\n";
+    try {
+        std::vector<Terminal *> *tok2_3_ = l2_->tokenize(str2_3_);
+    } catch (std::exception &e) {
+        std::cout << e.what() << std::endl;
+        EXPECT_STREQ(e.what(), "ERROR: Invalid token: -");
+    }
 }

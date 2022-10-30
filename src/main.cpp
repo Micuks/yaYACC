@@ -1,3 +1,4 @@
+#include "main.hpp"
 #include "cli_parser.hpp"
 #include "grammar.hpp"
 #include "parser.hpp"

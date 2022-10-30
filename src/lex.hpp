@@ -7,13 +7,14 @@
 
 class Lex {
   public:
-    Lex(Grammar *g, bool v) : g(g), verbose(v) {}
+    Lex(Grammar *g = nullptr, bool v = false) : g(g), verbose(v) {}
 
     std::vector<Terminal *> *tokenize(const char *str);
     std::vector<Terminal *> *tokenize(std::string str);
 
-    // private:
     Grammar *g;
+
+  private:
     bool verbose;
 };
 #endif // !LEX_HPP

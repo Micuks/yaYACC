@@ -78,7 +78,7 @@ class ParserTest : public ::testing::Test {
     std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
     std::string str2_21_ = std::string("(33+34)*45)32+8*(3*1+3)");
     std::string str2_3_ =
-        std::string("(33+34)*45(32+8*(3-1+3)"); // Have grammar error that can't
+        std::string("(33+34)*45(32+8*(3*1+3)"); // Have grammar error that can't
                                                 // pass LL(1) parse process.
 };
 
@@ -462,13 +462,24 @@ TEST_F(ParserTest, isParseCorrect2_2) {
     std::cout << "Tokenized[\"" << str2_2_ << "\"]:\n";
     std::cout << "This string is expected to be rejected for containing "
                  "illegal symbol '/'.\n";
-    std::vector<Terminal *> *tok2_2 = l->tokenize(str2_2_);
+    std::vector<Terminal *> *tok2_2;
+    try {
+        tok2_2 = l->tokenize(str2_2_);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+        ASSERT_EQ(std::string(e.what()),
+                  std::string("ERROR: Invalid token: /"));
+    }
     ASSERT_NE(tok2_2, nullptr);
     try {
         p->parse(tok2_2);
     } catch (std::exception &e) {
         std::cout << e.what();
-        ASSERT_EQ(std::string(e.what()), "");
+        ASSERT_EQ(std::string(e.what()),
+                  "ERROR: No entry of rule at position 0. REJECT INPUT "
+                  "STRING.\nCurrent elements in stack (bottom to top):\nBOTTOM "
+                  "OF STACK, E, \nRemaining unparsed input string:\nBOTTOM OF "
+                  "STACK, <\\+>, <\\*>, <\\(>, <\\)>, <id>, \n");
     }
     std::cout << std::endl;
 }
@@ -488,7 +499,13 @@ TEST_F(ParserTest, isParseCorrect2_21) {
     // Test on str_2_21_;
     std::cout << "Tokenized[\"" << str2_21_ << "\"]:\n";
     std::cout << "This string is expected to be accepted.\n";
-    std::vector<Terminal *> *tok2_21 = l->tokenize(str2_21_);
+    std::vector<Terminal *> *tok2_21 = nullptr;
+    try {
+        tok2_21 = l->tokenize(str2_21_);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+        EXPECT_EQ(std::string(e.what()), std::string(""));
+    }
     ASSERT_NE(tok2_21, nullptr);
     try {
         p->parse(tok2_21);
@@ -520,6 +537,14 @@ TEST_F(ParserTest, isParseCorrect2_3) {
         p->parse(tok2_3);
     } catch (std::exception &e) {
         std::cout << e.what();
+        EXPECT_EQ(
+            std::string(e.what()),
+            std::string(
+                "ERROR: No entry of rule at position 7. REJECT INPUT "
+                "STRING.\nCurrent elements in stack (bottom to top):\nBOTTOM "
+                "OF STACK, A, B, \nRemaining unparsed input string:\n<\\(>, "
+                "<[0-9]+>, <\\+>, <[0-9]+>, <\\*>, <\\(>, <[0-9]+>, <\\*>, "
+                "<[0-9]+>, <\\+>, <[0-9]+>, <\\)>, BOTTOM OF STACK, \n"));
     }
     std::cout << std::endl;
 }

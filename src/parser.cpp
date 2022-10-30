@@ -52,7 +52,8 @@ void Parser::parse(std::vector<Terminal *> *tokens) {
                 throw std::runtime_error(
                     std::string("ERROR: Unknown symbol at position ") +
                     std::to_string(it - tokens->begin()) +
-                    std::string(". REJECT INPUT STRING."));
+                    std::string(". REJECT INPUT STRING.\n") +
+                    stackToString(pda) + remainingTokensToString(it, tokens));
             } else {
 
                 // Get parseTable[variable][terminal].
@@ -573,4 +574,34 @@ std::unordered_set<Terminal *> Parser::toResolveFollow(Symbol *rSym) {
 std::unordered_set<Terminal *> &
 Parser::resolveFollow(Symbol *s, std::unordered_set<Terminal *> &followSet) {
     return followSet;
+}
+
+std::string Parser::stackToString(std::stack<Symbol *> pda) {
+    stringstream ss;
+    ss << "Current elements in stack (bottom to top):\n";
+    // Print stack for debug.
+    std::stack<Symbol *> rvsPda;
+    while (!pda.empty()) {
+        rvsPda.push(pda.top());
+        pda.pop();
+    }
+    while (!rvsPda.empty()) {
+        ss << *(rvsPda.top()) << ", ";
+        rvsPda.pop();
+    }
+    ss << std::endl;
+    return ss.str();
+}
+
+std::string
+Parser::remainingTokensToString(std::vector<Terminal *>::iterator it,
+                                std::vector<Terminal *> *tokens) {
+    stringstream ss;
+    ss << "Remaining unparsed input string:\n";
+    // Print remained tokens for debug.
+    for (auto a = it; a != tokens->end(); a++) {
+        ss << **a << ", ";
+    }
+    ss << std::endl;
+    return ss.str();
 }

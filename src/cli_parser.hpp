@@ -2,6 +2,7 @@
 #define CLI_PARSER_HPP
 #endif // !CLI_PARSER_HPP
 
+#include "main.hpp"
 #include <string>
 
 class CliParser {
@@ -29,5 +30,5 @@ class CliParser {
     void printError();
     void reportError();
     void isHasRestParameter(int i);
-    bool hasParameter(const char* param, int i);
+    bool hasParameter(const char *param, int i);
 };
