@@ -12,6 +12,7 @@ endif()
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GRAMMAR")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_SYMBOL")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_PARSER")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_LEX")
 
 include(fetchContent)
 FetchContent_Declare(
@@ -28,11 +29,11 @@ enable_testing()
 add_executable(
         test_all
         tests/test_all.cpp
-        # tests/test_symbol.cpp
-        # tests/test_rule.cpp
-        # tests/test_grammar.cpp
+        tests/test_symbol.cpp
+        tests/test_rule.cpp
+        tests/test_grammar.cpp
+        tests/test_lex.cpp
         tests/test_parser.cpp
-        # tests/test_lex.cpp
         )
 
 # target_compile_definitions(

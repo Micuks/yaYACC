@@ -50,7 +50,7 @@ class Terminal : public Symbol {
     bool matcher(string token) { return (regex_match(token, pattern)); }
     friend ostream &operator<<(ostream &os, const Terminal &sym);
 
-  private:
+    // private:
     regex pattern;
 };
 

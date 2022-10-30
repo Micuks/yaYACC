@@ -122,6 +122,11 @@ void Grammar::loadGrammar(const char *filename) {
                     }
                 }
                 if (!isExist) {
+#ifdef DEBUG_LEX
+                    std::cout << token << ".regexPattern="
+                              << token.substr(1, token.length() - 2)
+                              << std::endl;
+#endif
                     auto sym = new Terminal(
                         cnt++, terminals.size(), token,
                         regex(token.substr(1, token.length() - 2)));

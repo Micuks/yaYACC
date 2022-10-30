@@ -74,7 +74,7 @@ class ParserTest : public ::testing::Test {
     std::string str1_1_ = std::string("  a b   ");
 
     std::string str2_0_ = std::string("1+2+3+");
-    std::string str2_1_ = std::string("423*384*2 3");
+    std::string str2_1_ = std::string("423*384*23");
     std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
     std::string str2_21_ = std::string("(33+34)*45)32+8*(3*1+3)");
     std::string str2_3_ =
@@ -328,7 +328,7 @@ TEST_F(ParserTest, isMakeTableCorrect4_4) {
 //     p->printParseTable();
 // }
 
-TEST_F(ParserTest, isParseCorrect1) {
+TEST_F(ParserTest, isParseCorrect1_0) {
     Parser *p = p1_;
     Grammar *g = p->grammar;
     Lex *l = l1_;
@@ -339,16 +339,6 @@ TEST_F(ParserTest, isParseCorrect1) {
     ASSERT_EQ(g->startSymbol->getIdentifier(), "S");
     p->makeTable();
     p->printParseTable();
-
-    // Test on str_1_1_;
-    std::cout << "Tokenized[\"" << str1_1_ << "\"]:\n";
-    std::vector<Terminal *> *tok1_1 = l->tokenize(str1_1_);
-    ASSERT_NE(tok1_1, nullptr);
-    try {
-        p->parse(tok1_1);
-    } catch (std::exception &e) {
-        std::cout << e.what();
-    }
 
     // Test on str_1_0_;
     std::cout << "Tokenized [\"" << str1_0_ << "\"]:\n";
@@ -371,10 +361,35 @@ TEST_F(ParserTest, isParseCorrect1) {
 
     // Free memory allocated for tokenized input string.
     delete tok1_0;
+}
+
+TEST_F(ParserTest, isParseCorrect1_1) {
+    Parser *p = p1_;
+    Grammar *g = p->grammar;
+    Lex *l = l1_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "S");
+    p->makeTable();
+    p->printParseTable();
+
+    // Test on str_1_1_;
+    std::cout << "Tokenized[\"" << str1_1_ << "\"]:\n";
+    std::vector<Terminal *> *tok1_1 = l->tokenize(str1_1_);
+    ASSERT_NE(tok1_1, nullptr);
+    try {
+        p->parse(tok1_1);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+    }
+
+    // Free memory allocated for tokenized input string.
     delete tok1_1;
 }
 
-TEST_F(ParserTest, isParseCorrect2) {
+TEST_F(ParserTest, isParseCorrect2_0) {
     Parser *p = p2_;
     Grammar *g = p->grammar;
     Lex *l = l2_;
@@ -386,13 +401,125 @@ TEST_F(ParserTest, isParseCorrect2) {
     p->makeTable();
     p->printParseTable();
 
-    // Test on str_1_1_;
+    // Test on str_2_0_;
+    std::cout << "Tokenized[\"" << str2_0_ << "\"]:\n";
+    std::cout << "This string is expected to be rejected.\n";
+    std::vector<Terminal *> *tok2_0 = l->tokenize(str2_0_);
+    ASSERT_NE(tok2_0, nullptr);
+    try {
+        p->parse(tok2_0);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+        ASSERT_EQ(
+            std::string(e.what()),
+            std::string("ERROR: No entry of rule at position 6. REJECT INPUT "
+                        "STRING.\nCurrent elements in stack (bottom to "
+                        "top):\nBOTTOM OF STACK, A, T, \nRemaining unparsed "
+                        "input string:\nBOTTOM OF STACK, \n"));
+    }
+    std::cout << std::endl;
+}
+
+TEST_F(ParserTest, isParseCorrect2_1) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+    Lex *l = l2_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "E");
+    p->makeTable();
+    p->printParseTable();
+
+    // Test on str_2_1_;
     std::cout << "Tokenized[\"" << str2_1_ << "\"]:\n";
+    std::cout << "This string is expected to be accepted.\n";
     std::vector<Terminal *> *tok2_1 = l->tokenize(str2_1_);
     ASSERT_NE(tok2_1, nullptr);
     try {
         p->parse(tok2_1);
     } catch (std::exception &e) {
         std::cout << e.what();
+        ASSERT_EQ(std::string(e.what()), std::string(""));
     }
+    std::cout << std::endl;
+}
+
+TEST_F(ParserTest, isParseCorrect2_2) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+    Lex *l = l2_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "E");
+    p->makeTable();
+    p->printParseTable();
+    //
+    // Test on str_2_2_;
+    std::cout << "Tokenized[\"" << str2_2_ << "\"]:\n";
+    std::cout << "This string is expected to be rejected for containing "
+                 "illegal symbol '/'.\n";
+    std::vector<Terminal *> *tok2_2 = l->tokenize(str2_2_);
+    ASSERT_NE(tok2_2, nullptr);
+    try {
+        p->parse(tok2_2);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+        ASSERT_EQ(std::string(e.what()), "");
+    }
+    std::cout << std::endl;
+}
+
+TEST_F(ParserTest, isParseCorrect2_21) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+    Lex *l = l2_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "E");
+    p->makeTable();
+    p->printParseTable();
+
+    // Test on str_2_21_;
+    std::cout << "Tokenized[\"" << str2_21_ << "\"]:\n";
+    std::cout << "This string is expected to be accepted.\n";
+    std::vector<Terminal *> *tok2_21 = l->tokenize(str2_21_);
+    ASSERT_NE(tok2_21, nullptr);
+    try {
+        p->parse(tok2_21);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+    }
+    std::cout << std::endl;
+}
+
+TEST_F(ParserTest, isParseCorrect2_3) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+    Lex *l = l2_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "E");
+    p->makeTable();
+    p->printParseTable();
+
+    // Test on str_2_3_;
+    std::cout << "Tokenized[\"" << str2_3_ << "\"]:\n";
+    std::cout
+        << "This string is expected to be rejected for unpaired brakets.\n";
+    std::vector<Terminal *> *tok2_3 = l->tokenize(str2_3_);
+    ASSERT_NE(tok2_3, nullptr);
+    try {
+        p->parse(tok2_3);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+    }
+    std::cout << std::endl;
 }

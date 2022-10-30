@@ -87,28 +87,29 @@ TEST_F(LexTest, tokenize2) {
 
     std::cout << "Tokenize [" << str2_0_ << "]:\n";
     std::vector<Terminal *> *tok2_0_ = l2_->tokenize(str2_0_);
+    std::cout << std::endl;
 
     std::cout << "Tokenize [" << str2_1_ << "]:\n";
     std::vector<Terminal *> *tok2_1_ = l2_->tokenize(str2_1_);
 
-    std::cout << "Tokenize [" << str2_21_ << "]:\n";
-    std::vector<Terminal *> *tok2_21_ = l2_->tokenize(str2_21_);
-
-    std::cout << "Tokenize [" << str2_2_ << "]:\n";
-    std::cout << "This tokenization is expected to throw an exception.\n";
-    try {
-        std::vector<Terminal *> *tok2_2_ = l2_->tokenize(str2_2_);
-    } catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
-        EXPECT_STREQ(e.what(), "ERROR: Invalid token: /");
-    }
-
-    std::cout << "Tokenize [" << str2_3_ << "]:\n";
-    std::cout << "This tokenization is expected to throw an exception.\n";
-    try {
-        std::vector<Terminal *> *tok2_3_ = l2_->tokenize(str2_3_);
-    } catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
-        EXPECT_STREQ(e.what(), "ERROR: Invalid token: -");
-    }
+    // std::cout << "Tokenize [" << str2_21_ << "]:\n";
+    // std::vector<Terminal *> *tok2_21_ = l2_->tokenize(str2_21_);
+    //
+    // std::cout << "Tokenize [" << str2_2_ << "]:\n";
+    // std::cout << "This tokenization is expected to throw an exception.\n";
+    // try {
+    //     std::vector<Terminal *> *tok2_2_ = l2_->tokenize(str2_2_);
+    // } catch (std::exception &e) {
+    //     std::cout << e.what() << std::endl;
+    //     EXPECT_STREQ(e.what(), "ERROR: Invalid token: /");
+    // }
+    //
+    // std::cout << "Tokenize [" << str2_3_ << "]:\n";
+    // std::cout << "This tokenization is expected to throw an exception.\n";
+    // try {
+    //     std::vector<Terminal *> *tok2_3_ = l2_->tokenize(str2_3_);
+    // } catch (std::exception &e) {
+    //     std::cout << e.what() << std::endl;
+    //     EXPECT_STREQ(e.what(), "ERROR: Invalid token: -");
+    // }
 }

@@ -1,5 +1,6 @@
 #ifndef GRAMMAR_HPP
 #define GRAMMAR_HPP
+#include <iostream>
 #include <regex>
 #include <vector>
 
@@ -10,6 +11,7 @@ using namespace std;
 
 class Grammar {
   public:
+    Grammar() : startSymbol(nullptr) {}
     vector<Terminal *> terminals;
     vector<Variable *> variables;
     vector<Rule> rules;
