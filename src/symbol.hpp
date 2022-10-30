@@ -15,10 +15,6 @@ class Symbol {
     const int getTag() const { return tag; }
     const int getIndex() const { return index; }
 
-    virtual SymbolType getType() = 0;
-    virtual bool matcher(string token) = 0;
-    virtual string toString() const;
-
     bool operator==(const Symbol &rhs) const {
         return (rhs.getIdentifier() == getIdentifier()) &&
                (rhs.getIndex() == getIndex()) && (rhs.getTag() == getTag());
@@ -26,6 +22,10 @@ class Symbol {
     }
 
     friend ostream &operator<<(ostream &os, const Symbol &sym);
+
+    virtual SymbolType getType() = 0;
+    virtual bool matcher(string token) = 0;
+    virtual string toString() const;
 
   private:
     int tag;
@@ -43,15 +43,15 @@ class Variable : public Symbol {
 };
 
 class Terminal : public Symbol {
-  private:
-    regex pattern;
-
   public:
     Terminal(int tag, int index, string id, regex pattern)
         : Symbol(tag, index, id), pattern(pattern) {}
     SymbolType getType() { return SymbolType(terminal); }
     bool matcher(string token) { return (regex_match(token, pattern)); }
     friend ostream &operator<<(ostream &os, const Terminal &sym);
+
+  private:
+    regex pattern;
 };
 
 #endif // !SYMBOL_HPP

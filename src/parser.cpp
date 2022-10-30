@@ -12,7 +12,92 @@
 // public:
 void Parser::parse(std::vector<Terminal *> *input) {}
 
-void Parser::makeTable() {}
+void Parser::dropTable() {
+    if (parseTable) {
+        for (int i = 0; i < lenParseTable; i++) {
+            int *tupleI = parseTable[i];
+            if (tupleI) {
+                delete[] tupleI;
+            }
+        }
+
+        delete[] parseTable;
+    }
+}
+
+void Parser::makeTable() {
+    // Drop parseTable if it already exists.
+    dropTable();
+    // Create new parseTable
+    lenParseTable = grammar->variables.size();
+    parseTable = new int *[lenParseTable];
+    for (int i = 0; i < lenParseTable; i++) {
+        parseTable[i] = new int[grammar->terminals.size()];
+    }
+
+    for (int i = 0; i < lenParseTable; i++) {
+        for (int j = 0; j < grammar->terminals.size(); j++) {
+            parseTable[i][j] = -1;
+        }
+    }
+
+    for (int i = 0; i < grammar->rules.size(); i++) {
+        auto &epsilon = grammar->epsilon;
+        auto &currRule = grammar->rules[i];
+
+        bool epsExists = false;
+        bool bosExists = false;
+        Symbol *a = currRule.rhs[0];
+        Variable *A = currRule.lhs;
+
+        // for each terminal in FIRST(a), add A->a... to M[A, t].
+        auto firstSet = first(a);
+        for (auto &t : firstSet) {
+            if (t == epsilon) {
+                epsExists = true;
+            } else {
+                parseTable[A->getIndex()][t->getIndex()] = i;
+            }
+        }
+
+        // If epsilon exists in FIRST(a), add A->a... to M[A, t] for each
+        // terminal in FOLLOW(A).
+        if (epsExists) {
+            auto followSet = follow(A);
+            auto &bos = grammar->bos;
+            for (auto &t : followSet) {
+                if (t == bos) {
+                    bosExists = true;
+                } else {
+                    parseTable[A->getIndex()][bos->getIndex()] = i;
+                }
+            }
+
+            // Add A->a... to M[A, $] if epsilon in FIRST(a) and $ in FOLLOW(A).
+            if (bosExists) {
+                parseTable[A->getIndex()][bos->getIndex()] = i;
+            }
+        }
+    }
+}
+
+void Parser::printParseTable() {
+    // TODO: If this prints incorrect parseTable, change to index by
+    // A->getIndex()
+    std::cout << "~\t";
+    for (auto &a : grammar->terminals) {
+        std::cout << a << "\t";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < lenParseTable; i++) {
+        std::cout << "[" << grammar->variables[i] << "]"
+                  << ":\t";
+        for (int j = 0; j < grammar->terminals.size(); j++) {
+            std::cout << parseTable[i][j] << " |\t";
+        }
+        std::cout << std::endl;
+    }
+}
 
 void Parser::importFromFile(const char *filename) {
     // TODO: Implement it

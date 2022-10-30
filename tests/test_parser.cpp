@@ -245,3 +245,35 @@ TEST_F(ParserTest, isFollowCorrect2) {
 
     p2_->printFollowTable();
 }
+
+TEST_F(ParserTest, isMakeTableCorrect1) {
+    Parser *p = p1_;
+    Grammar *g = p->grammar;
+
+    p->makeTable();
+    p->printParseTable();
+}
+
+TEST_F(ParserTest, isMakeTableCorrect2) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+
+    p->makeTable();
+    p->printParseTable();
+}
+
+TEST_F(ParserTest, isMakeTableCorrect4_4) {
+    Parser *p = p4_4_;
+    Grammar *g = p->printParseTable();
+
+    p->makeTable();
+    p->printParseTable();
+}
+
+TEST_F(ParserTest, isMakeTableCorrect4_7) {
+    Parser *p = p4_7_;
+    Grammar *g = p->grammar;
+
+    p->makeTable();
+    p->printParseTable();
+}
