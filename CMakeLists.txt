@@ -28,11 +28,11 @@ enable_testing()
 add_executable(
         test_all
         tests/test_all.cpp
-        tests/test_symbol.cpp
-        tests/test_rule.cpp
-        tests/test_grammar.cpp
+        # tests/test_symbol.cpp
+        # tests/test_rule.cpp
+        # tests/test_grammar.cpp
         tests/test_parser.cpp
-        tests/test_lex.cpp
+        # tests/test_lex.cpp
         )
 
 # target_compile_definitions(

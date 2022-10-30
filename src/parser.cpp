@@ -16,6 +16,7 @@
 void Parser::parse(std::vector<Terminal *> *tokens) {
     std::stack<Symbol *> pda = std::stack<Symbol *>();
     const Grammar *g = grammar;
+    assert(parseTable != nullptr);
 
     int currPos = 0;
     std::vector<Terminal *>::iterator it = (*tokens).begin();
@@ -27,9 +28,14 @@ void Parser::parse(std::vector<Terminal *> *tokens) {
         const Terminal *token = *it;
         Symbol *tos = pda.top(); // Top of stack
 
-        // Try to match curent terminal in token with symbol at the top of
-        // stack.
+#ifdef DEBUG_PARSER
+        std::cout << "Current token: " << **it
+                  << ", current pos: " << it - tokens->begin() << std::endl;
+#endif // DEBUG_PARSER
+       // Try to match curent terminal in token with symbol at the top of
+       // stack.
         if (token->getTag() == (tos->getTag())) {
+
             // tos matches token
             if (verbose) {
                 std::cout << "Symbol matched: " << tos->getIdentifier()
@@ -52,11 +58,31 @@ void Parser::parse(std::vector<Terminal *> *tokens) {
                 // Get parseTable[variable][terminal].
                 int ruleIdx = parseTable[tos->getIndex()][token->getIndex()];
                 if (ruleIdx == -1) {
+                    stringstream ss;
+                    ss << "Current elements in stack (bottom to top):\n";
+                    // Print stack for debug.
+                    std::stack<Symbol *> rvsPda;
+                    while (!pda.empty()) {
+                        rvsPda.push(pda.top());
+                        pda.pop();
+                    }
+                    while (!rvsPda.empty()) {
+                        ss << *(rvsPda.top()) << ", ";
+                        rvsPda.pop();
+                    }
+                    ss << std::endl;
+
+                    ss << "Remaining unparsed input string:\n";
+                    // Print remained tokens for debug.
+                    for (auto a = it; a != tokens->end(); a++) {
+                        ss << **a << ", ";
+                    }
+                    ss << std::endl;
 
                     throw std::runtime_error(
                         std::string("ERROR: No entry of rule at position ") +
                         std::to_string(it - tokens->begin()) +
-                        std::string(". REJECT INPUT STRING."));
+                        std::string(". REJECT INPUT STRING.\n") + ss.str());
                 } else {
 
                     if (verbose) {

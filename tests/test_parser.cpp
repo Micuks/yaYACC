@@ -71,6 +71,7 @@ class ParserTest : public ::testing::Test {
     Parser *p4_4_;
 
     std::string str1_0_ = std::string("aaa bbb a");
+    std::string str1_1_ = std::string("  a b   ");
 
     std::string str2_0_ = std::string("1+2+3+");
     std::string str2_1_ = std::string("423*384*2 3");
@@ -331,17 +332,67 @@ TEST_F(ParserTest, isParseCorrect1) {
     Parser *p = p1_;
     Grammar *g = p->grammar;
     Lex *l = l1_;
-    std::cout << "Tokenized [" << str1_0_ << "]:\n";
-    std::vector<Terminal *> *tok1_0 = l->tokenize(str1_0_);
 
     EXPECT_EQ(p->verbose, true);
-    ASSERT_NE(tok1_0, nullptr);
     ASSERT_NE(g, nullptr);
     ASSERT_NE(g->bos, nullptr);
     ASSERT_EQ(g->startSymbol->getIdentifier(), "S");
     p->makeTable();
     p->printParseTable();
-    p->parse(tok1_0);
 
+    // Test on str_1_1_;
+    std::cout << "Tokenized[\"" << str1_1_ << "\"]:\n";
+    std::vector<Terminal *> *tok1_1 = l->tokenize(str1_1_);
+    ASSERT_NE(tok1_1, nullptr);
+    try {
+        p->parse(tok1_1);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+    }
+
+    // Test on str_1_0_;
+    std::cout << "Tokenized [\"" << str1_0_ << "\"]:\n";
+    std::vector<Terminal *> *tok1_0 = l->tokenize(str1_0_);
+    ASSERT_NE(tok1_0, nullptr);
+    std::cout << "This input string is expected to be rejected." << std::endl;
+    try {
+        p->parse(tok1_0);
+    } catch (std::exception &e) {
+        std::cerr << e.what();
+        EXPECT_EQ(
+            std::string(e.what()),
+            std::string(
+                "ERROR: No entry of rule at position 1. REJECT INPUT "
+                "STRING.\nCurrent elements in stack (bottom to top):\nBOTTOM "
+                "OF STACK, A, \nRemaining unparsed input string:\n<a>, <a>, "
+                "<b>, "
+                "<b>, <b>, <a>, BOTTOM OF STACK, \n"));
+    }
+
+    // Free memory allocated for tokenized input string.
     delete tok1_0;
+    delete tok1_1;
+}
+
+TEST_F(ParserTest, isParseCorrect2) {
+    Parser *p = p2_;
+    Grammar *g = p->grammar;
+    Lex *l = l2_;
+
+    EXPECT_EQ(p->verbose, true);
+    ASSERT_NE(g, nullptr);
+    ASSERT_NE(g->bos, nullptr);
+    ASSERT_EQ(g->startSymbol->getIdentifier(), "E");
+    p->makeTable();
+    p->printParseTable();
+
+    // Test on str_1_1_;
+    std::cout << "Tokenized[\"" << str2_1_ << "\"]:\n";
+    std::vector<Terminal *> *tok2_1 = l->tokenize(str2_1_);
+    ASSERT_NE(tok2_1, nullptr);
+    try {
+        p->parse(tok2_1);
+    } catch (std::exception &e) {
+        std::cout << e.what();
+    }
 }
