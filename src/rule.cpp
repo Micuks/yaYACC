@@ -9,6 +9,12 @@ bool Rule::leadToEpsilon(const Symbol *epsilon) {
     return (rhs.size() == 1) && (rhs.front() == epsilon);
 }
 
+string Rule::toString() {
+    stringstream ss;
+    ss << *this;
+    return ss.str();
+}
+
 ostream &operator<<(ostream &os, const Rule &r) {
     stringstream ss;
     ss << r.lhs->getIdentifier() << " -> ";
@@ -23,9 +29,19 @@ ostream &operator<<(ostream &os, const Rule &r) {
     os << ss.str();
     return os;
 }
-
-string Rule::toString() {
-    stringstream ss;
-    ss << *this;
-    return ss.str();
+bool operator==(const Rule &ruleA, const Rule &ruleB) {
+    if (*(ruleA.lhs) == *(ruleB.lhs)) {
+        if (ruleA.rhs.size() == ruleB.rhs.size()) {
+            for (int i = 0; i < ruleA.rhs.size(); i++) {
+                if (ruleA.rhs[i] != ruleB.rhs[i]) {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
 }

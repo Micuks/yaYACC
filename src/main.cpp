@@ -89,6 +89,8 @@ int main(int argc, const char **argv) {
         tokenizedInput = lex->tokenize(rawInput);
     }
 
+    // TODO: Load and save parser to file
+
     try {
         parser->parse(tokenizedInput);
     } catch (std::exception &e) {

@@ -8,14 +8,12 @@
 
 using namespace std;
 
-enum SymbolType {
-    variable, terminal
-};
+enum SymbolType { variable, terminal };
 
 class Symbol {
-public:
+  public:
     Symbol(int tag, int index, string id)
-            : tag(tag), index(index), identifier(id) {}
+        : tag(tag), index(index), identifier(id) {}
 
     const string getIdentifier() const { return identifier; }
 
@@ -37,14 +35,14 @@ public:
 
     virtual string toString() const;
 
-private:
+  private:
     int tag;
     int index;
     string identifier;
 };
 
 class Variable : public Symbol {
-public:
+  public:
     Variable(int tag, int index, string id) : Symbol(tag, index, id) {}
 
     SymbolType getType() { return SymbolType(variable); }
@@ -55,14 +53,15 @@ public:
 };
 
 class Terminal : public Symbol {
-public:
+  public:
     Terminal(int tag, int index, string id, regex pattern)
-            : Symbol(tag, index, id), pattern(pattern) {}
+        : Symbol(tag, index, id), pattern(pattern) {}
 
     SymbolType getType() { return SymbolType(terminal); }
 
     bool matcher(string token) {
-        if (token.length() == 0) return false;
+        if (token.length() == 0)
+            return false;
         return (regex_match(token, pattern));
     }
 

@@ -21,4 +21,5 @@ class Rule {
 };
 
 ostream &operator<<(ostream &os, const Rule &r);
+bool operator==(const Rule &ruleA, const Rule &ruleB);
 #endif // !RULE_HPP

@@ -3,12 +3,11 @@
 #include "main.hpp"
 #include <iostream>
 #include <regex>
+#include <unordered_set>
 #include <vector>
 
 #include "rule.hpp"
 #include "symbol.hpp"
-
-using namespace std;
 
 class Grammar {
   public:
@@ -30,5 +29,15 @@ class Grammar {
     Symbol *getSymbol(int tag);
     Terminal *matchTerminal(string str);
     bool toEpsilonDirectly(Variable *sym);
+
+    void cfg2ll1();
+
+  private:
+    bool collectVariablesHaveLeftRecursion(
+        std::unordered_set<Variable *> &variablesWhoseRulesHaveLeftRecursion);
+
+    Variable *
+    getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
+                   Variable *lhs, int &tagCnt, int &variablesIndexCnt);
 };
 #endif // !GRAMMAR_HPP

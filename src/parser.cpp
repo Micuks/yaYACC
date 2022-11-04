@@ -192,7 +192,7 @@ void Parser::makeTable() {
 
 std::string Parser::parseTableToString() {
     stringstream ss;
-    // TODO: If this prints incorrect parseTable, change to index by
+    // Hint: If this prints incorrect parseTable, change to index by
     // A->getIndex()
     const int fixedWidth = 17;
     const char separator = ' ';

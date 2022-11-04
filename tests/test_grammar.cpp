@@ -4,21 +4,24 @@
 #include <regex>
 #include <vector>
 
-// TODO: Write tests based on g2.txt
-
 class GrammarTest : public ::testing::Test {
   protected:
     void SetUp() {
         g1_.loadGrammar("../grammars/g1.txt");
-        g1_.printRules();
+        // g1_.printRules();
 
         g2_.loadGrammar("../grammars/g2.txt");
-        g2_.printRules();
+        // g2_.printRules();
+
+        // Test convert cfg to ll(1) acceptable grammar.
+        g3_.loadGrammar("../grammars/g3.txt");
+        // g3_.printRules();
     }
 
     Grammar g0_;
     Grammar g1_;
     Grammar g2_;
+    Grammar g3_;
 };
 
 TEST_F(GrammarTest, IsEmptyInitially) {
@@ -134,4 +137,26 @@ TEST_F(GrammarTest, checkToEpsilonDIrectly) {
     std::cout << "A: " << *A << " S: " << *S << std::endl;
     EXPECT_TRUE(g1_.toEpsilonDirectly((Variable *)A));
     EXPECT_FALSE(g1_.toEpsilonDirectly((Variable *)S));
+}
+
+TEST_F(GrammarTest, checkEliminataLeftRecursion) {
+    Grammar g = g3_;
+    g.printRules();
+    g.cfg2ll1();
+    //
+    // std::cout << "g3_.variables: \n";
+    // for (auto &a : g3_.variables) {
+    //     std::cout << "[" << a->getTag() << ", " << a->getIndex() << ", "
+    //               << a->getIdentifier() << "], ";
+    // }
+    // std::cout << std::endl;
+    //
+    // std::cout << "g3_.terminals: \n";
+    // for (auto &a : g3_.terminals) {
+    //     std::cout << "[" << a->getTag() << ", " << a->getIndex() << ", "
+    //               << a->getIdentifier() << "], ";
+    // }
+    // std::cout << std::endl;
+    //
+    g.printRules();
 }
