@@ -1,5 +1,6 @@
 #include "grammar.hpp"
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -52,6 +53,10 @@ vector<Rule> Grammar::atRhsRules(Symbol *s) {
     return retVec;
 }
 
+void Grammar::loadGrammar(const std::string &filename) {
+    loadGrammar(filename.c_str());
+}
+
 void Grammar::loadGrammar(const char *filename) {
     int cnt = 0;
     Variable *preVar;
@@ -62,8 +67,8 @@ void Grammar::loadGrammar(const char *filename) {
     file.open(filename, fstream::in);
 
     if (!file.is_open()) {
-        cerr << "Error opening grammar file" << endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error(std::string("ERROR: Failed to open file ") +
+                                 std::string(filename));
     }
 
     // Add bottom of stack symbol to terminals

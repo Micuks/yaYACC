@@ -25,6 +25,7 @@ class Grammar {
     vector<Rule> atRhsRules(Symbol *s);
 
     void loadGrammar(const char *filename);
+    void loadGrammar(const std::string &filename);
     void printRules();
     Symbol *getSymbol(int tag);
     Terminal *matchTerminal(string str);

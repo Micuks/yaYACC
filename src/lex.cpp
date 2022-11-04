@@ -9,7 +9,6 @@ std::vector<Terminal *> *Lex::tokenize(std::string str) {
     return tokenize(str.c_str());
 }
 
-// FIX: Doesn't match longest possible token.
 std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
     auto tokens = new std::vector<Terminal *>;
     int idx = 0;
