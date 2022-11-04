@@ -1,4 +1,5 @@
 #include "../src/lex.hpp"
+#include "../src/main.hpp"
 #include "../src/parser.hpp"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -76,7 +77,7 @@ class ParserTest : public ::testing::Test {
     std::string str2_0_ = std::string("1+2+3+");
     std::string str2_1_ = std::string("423*384*23");
     std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
-    std::string str2_21_ = std::string("(33+34)*45)32+8*(3*1+3)");
+    std::string str2_21_ = std::string("(33+34)*45*32+8*(3*1+3)");
     std::string str2_3_ =
         std::string("(33+34)*45(32+8*(3*1+3)"); // Have grammar error that can't
                                                 // pass LL(1) parse process.
