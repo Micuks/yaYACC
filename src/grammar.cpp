@@ -298,7 +298,7 @@ void Grammar::cfg2ll1() {
 #endif // DEBUG_LEFT_RECURSION
        // Add new rule with newVariable as lhs.
                     vector<Symbol *> newRhs;
-                    for (auto it = rhs.begin() + 1; it != rhs.end(); it++) {
+                    for (auto it = rhs.begin(); it != rhs.end(); it++) {
                         newRhs.push_back(*it);
                     }
                     newRhs.push_back(newVariable);
@@ -355,19 +355,18 @@ void Grammar::cfg2ll1() {
         std::cout << std::endl;
 #endif // DEBUG_LEFT_RECURSION
 
-        for (auto it = rules.begin(); it != rules.end(); it++) {
+        for (auto jt = rulesToDelete.begin(); jt != rulesToDelete.end(); jt++) {
             bool found = false;
-            for (auto jt = rulesToDelete.begin(); jt != rulesToDelete.end();
-                 jt++) {
+            for (auto it = rules.begin(); it != rules.end(); it++) {
                 if ((*it) == (*jt)) {
-                    found = true;
+#ifdef DEBUG_LEFT_RECURSION
+                    std::cout << *it << " equals " << *jt << std::endl;
+#endif // DEBUG_LEFT_RECURSION
+
+                    rules.erase(it); // If deletes an element, break loop to
+                                     // avoid error access.
                     break;
                 }
-            }
-            if (found) {
-                it = rules.erase(it); // If deletes an element, it points to
-                                      // next element following the element
-                                      // deleted.
             }
         }
         // Insert newly created rules.
@@ -395,8 +394,9 @@ bool Grammar::collectVariablesHaveLeftRecursion(
             if (variablesWhoseRulesHaveLeftRecursion.find(lhs) ==
                 variablesWhoseRulesHaveLeftRecursion.end()) {
                 variablesWhoseRulesHaveLeftRecursion.insert(
-                    lhs); // WARNING: There may be variables whose identifiers
-                          // are the same but are inserted more than one time.
+                    lhs); // WARNING: There may be variables whose
+                          // identifiers are the same but are inserted more
+                          // than one time.
             }
         }
     }

@@ -40,4 +40,10 @@ class Grammar {
     getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
                    Variable *lhs, int &tagCnt, int &variablesIndexCnt);
 };
+
+class LR1Grammar : public Grammar {
+  public:
+    int dotPos;
+    std::string lookAhead;
+};
 #endif // !GRAMMAR_HPP

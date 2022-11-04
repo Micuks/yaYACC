@@ -29,7 +29,8 @@ ostream &operator<<(ostream &os, const Rule &r) {
     os << ss.str();
     return os;
 }
-bool operator==(const Rule &ruleA, const Rule &ruleB) {
+
+bool operator==(Rule &ruleA, Rule &ruleB) {
     if (*(ruleA.lhs) == *(ruleB.lhs)) {
         if (ruleA.rhs.size() == ruleB.rhs.size()) {
             for (int i = 0; i < ruleA.rhs.size(); i++) {
