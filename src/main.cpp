@@ -7,7 +7,7 @@
 #include "symbol.hpp"
 #include <vector>
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
     CliParser clip(argc, argv);
     Grammar *grammar;
     Parser *parser;
@@ -26,11 +26,16 @@ int main(int argc, char **argv) {
             std::cerr << e.what();
             exit(-1);
         }
+
         if (clip.v()) {
             grammar->printRules();
         }
+
         parser = new Parser(grammar, clip.v());
         parser->makeTable();
+
+        lex = new Lex(grammar, clip.v());
+
         if (clip.v()) {
             parser->printFirstTable();
             parser->printFollowTable();

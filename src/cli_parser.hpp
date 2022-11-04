@@ -6,7 +6,7 @@
 
 class CliParser {
   public:
-    CliParser(int argc, char **argv);
+    CliParser(int argc, const char **argv);
     bool g() { return optg; }
     std::string gFile() { return gfile; }
     bool o() { return opto; }
@@ -21,7 +21,7 @@ class CliParser {
 
   private:
     int argc;
-    char **argv;
+    const char **argv;
     bool errorFlag;
     bool optg, opto, optp, opti, optv, opts;
     std::string gfile, pfile, ofile, ifile, sstr;

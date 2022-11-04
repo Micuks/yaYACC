@@ -3,14 +3,14 @@
 
 using namespace std;
 
-CliParser::CliParser(int argc, char **argv) : argc(argc), argv(argv) {
+CliParser::CliParser(int argc, const char **argv) : argc(argc), argv(argv) {
     errorFlag = false;
-#ifdef DEBUG_CLIPARSER
+#ifdef DEBUG_MAIN
     std::cout << "argc: " << argc << ", argv: \n";
     for (int i = 0; i < argc; i++) {
         std::cout << "argv[" << i << "]: " << argv[i] << ", ";
     }
-#endif // DEBUG_CLIPARSER
+#endif // DEBUG_MAIN
     // Skip argv[0]: <program name>
     for (int i = 1; i < argc; i++) {
         if (hasParameter("-h", i)) {

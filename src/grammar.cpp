@@ -202,6 +202,7 @@ Terminal *Grammar::matchTerminal(string str) {
     }
 #endif // DEBUG_GRAMMAR
     for (auto &a : terminals) {
+        assert(a!= nullptr);
 #ifdef DEBUG_GRAMMAR
         cout << a->getIdentifier() << " ";
 #endif // DEBUG_GRAMMAR

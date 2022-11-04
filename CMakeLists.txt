@@ -8,14 +8,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 # set(CMAKE_BUILD_TYPE Release)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GLOBAL")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GLOBAL")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_RULE")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GRAMMAR")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_SYMBOL")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_PARSER")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_LEX")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_CLIPARSER")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MAIN")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MAIN")
 
 include(fetchContent)
 FetchContent_Declare(
@@ -37,13 +37,8 @@ add_executable(
         tests/test_grammar.cpp
         tests/test_lex.cpp
         tests/test_parser.cpp
+        tests/test_main.cpp
         )
-
-# target_compile_definitions(
-#         test_all
-#         PRIVATE
-#         $<$<CONFIG:Debug>:DEBUG>
-#         )
 
 target_link_libraries(
         test_all
