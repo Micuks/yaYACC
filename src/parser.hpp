@@ -68,6 +68,11 @@ class Parser {
 
 class LR1Parser : public Parser {
   public:
+    LR1Parser() {}
+    LR1Parser(Grammar *g, bool verbose)
+        : Parser(LR1Grammar(*g).getBase(), verbose) {}
+    // Augmenting via LR1Grammar constructor
+
     void parse(std::vector<Terminal *> *tokens);
 
     void printLR1ItemSets(std::ostream &os);
@@ -98,7 +103,9 @@ class LR1Parser : public Parser {
         int state;
     };
 
-    void getClosure(ItemSet itemSet);
+    void printItemSet(const ItemSet &itemSet, std::ostream &os);
+    std::string lR1ItemSetToString(const ItemSet &itemSet);
+    void getClosure(ItemSet &itemSet);
     ItemSet getGo(ItemSet &itemSet, Symbol *symbolToGo);
 
     int go(ItemSet &itemSet, Symbol *sym);

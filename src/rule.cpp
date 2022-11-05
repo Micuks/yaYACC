@@ -61,14 +61,20 @@ ostream &operator<<(ostream &os, const LR1Item &item) {
         if (i == item.dotPos) {
             ss << "~ ";
         }
-        ss << item.rhs[i] << " ";
+        ss << *(item.rhs[i]) << " ";
     }
     if (item.dotPos == item.rhs.size()) {
         ss << "~ ";
     }
-    ss << ", " << item.lookAhead;
+    ss << ", " << *(item.lookAhead);
     os << ss.str();
     return os;
+}
+
+std::string LR1Item::toString() const {
+    stringstream ss;
+    ss << *this;
+    return ss.str();
 }
 
 bool operator==(LR1Item &itemA, LR1Item &itemB) {
@@ -82,7 +88,9 @@ bool operator==(LR1Item &itemA, LR1Item &itemB) {
 }
 
 bool operator==(const LR1Item &itemA, const LR1Item &itemB) {
-    return itemA == itemB;
+    auto iA(itemA);
+    auto iB(itemB);
+    return iA == iB;
 }
 
 Rule LR1Item::getBase() { return Rule(lhs, rhs); }

@@ -56,6 +56,8 @@ class LR1Grammar : public Grammar {
     LR1Grammar() : Grammar() {}
     LR1Grammar(Grammar &g) : Grammar(g) { augmenting(); }
 
+    Grammar *getBase();
+
   private:
     void augmenting();
 };

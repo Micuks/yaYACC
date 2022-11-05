@@ -35,7 +35,7 @@ class LR1Item : public Rule {
         : Rule(old.lhs, old.rhs), dotPos(old.dotPos), lookAhead(old.lookAhead) {
     }
 
-    std::string toString();
+    std::string toString() const;
     Rule getBase();
 
     int dotPos;

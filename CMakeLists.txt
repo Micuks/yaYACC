@@ -17,6 +17,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_GLOBAL")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_CLIPARSER")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MAIN")
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_LEFT_RECURSION")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_LR1GRAMMAR")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_LR1PARSER")
 
 include(fetchContent)
 FetchContent_Declare(
@@ -40,6 +42,7 @@ add_executable(
         tests/test_lr1_grammar.cpp
         # tests/test_lex.cpp
         # tests/test_parser.cpp
+        tests/test_lr1_parser.cpp
         # tests/test_main.cpp
         )
 

@@ -458,3 +458,16 @@ void LR1Grammar::augmenting() {
     printRules();
 #endif // DEBUG_LR1GRAMMAR
 }
+
+Grammar *LR1Grammar::getBase() {
+    Grammar *g = new Grammar();
+
+    g->terminals = terminals;
+    g->variables = variables;
+    g->rules = rules;
+    g->startSymbol = startSymbol;
+    g->epsilon = epsilon;
+    g->bos = bos;
+
+    return g;
+}

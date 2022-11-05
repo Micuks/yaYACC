@@ -123,7 +123,8 @@ void Parser::dropTable() {
             }
         }
 
-        delete[] parseTable;
+        if (lenParseTable)
+            delete[] parseTable;
     }
 }
 
@@ -572,6 +573,7 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
 std::unordered_set<Terminal *> Parser::toResolveFollow(Symbol *rSym) {
     return follow(rSym);
 }
+
 std::unordered_set<Terminal *> &
 Parser::resolveFollow(Symbol *s, std::unordered_set<Terminal *> &followSet) {
     return followSet;
@@ -607,8 +609,14 @@ Parser::remainingTokensToString(std::vector<Terminal *>::iterator it,
     return ss.str();
 }
 
+std::string LR1Parser::lR1ItemSetToString(const ItemSet &itemSet) {
+    stringstream ss;
+    printItemSet(itemSet, ss);
+    return ss.str();
+}
+
 // LR1Parser
-void LR1Parser::getClosure(ItemSet itemSet) {
+void LR1Parser::getClosure(ItemSet &itemSet) {
     bool isUpdated = true;
 
     // Repeat until no new item is added.
@@ -706,6 +714,11 @@ int LR1Parser::go(ItemSet &itemSet, Symbol *sym) {
     // return index of newItemSet
     return i;
 }
+void LR1Parser::printItemSet(const ItemSet &itemSet, std::ostream &os) {
+    for (const auto &item : itemSet) {
+        os << "\t" << item << std::endl;
+    }
+}
 
 void LR1Parser::parse(std::vector<Terminal *> *tokens) {
     // Add starting item to initialItemSet
@@ -713,8 +726,19 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
         ItemSet{LR1Item(grammar->atLhsRules(grammar->startSymbol).front(), 0,
                         grammar->epsilon)};
 
+#ifdef DEBUG_LR1PARSER
+
+    std::cout << "\nBefore getClosure:\n";
+    printItemSet(initItemSet, cout);
+#endif // DEBUG_LR1PARSER
+
     // Get closure of initItemSet
     getClosure(initItemSet);
+#ifdef DEBUG_LR1PARSER
+
+    std::cout << "\nAfter getClosure:\n";
+    printItemSet(initItemSet, cout);
+#endif // DEBUG_LR1PARSER
 
     itemSets.push_back(initItemSet);
 
@@ -761,9 +785,7 @@ void LR1Parser::printLR1ItemSets(std::ostream &os) {
     os << "\nLR1 Item Sets:\n";
     for (const auto &itemSet : itemSets) {
         os << "Item set " << index++ << ":\n";
-        for (const auto &item : itemSet) {
-            os << "\t" << item << std::endl;
-        }
+        printItemSet(itemSet, os);
     }
 }
 
@@ -771,7 +793,7 @@ void LR1Parser::printLR1ParseTable(std::ostream &os) {
     os << "\nLR1 Parse Table:\n";
     for (const auto &entry : parseTable) {
         os << "<" << std::setw(2) << std::right << entry.first.first << ", "
-           << std::setw(5) << std::left << entry.first.second << "> -> ";
+           << std::setw(9) << std::left << *(entry.first.second) << "> | ";
         const auto &action = entry.second;
 
         switch (action.type) {
@@ -779,7 +801,7 @@ void LR1Parser::printLR1ParseTable(std::ostream &os) {
             if (action.rule.lhs == grammar->startSymbol) {
                 os << "ACC";
             } else {
-                os << "Reduced by " << action.rule << std::endl;
+                os << "Reduced by " << action.rule;
             }
 
             break;
