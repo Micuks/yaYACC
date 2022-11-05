@@ -36,6 +36,8 @@ add_executable(
         tests/test_symbol.cpp
         tests/test_rule.cpp
         tests/test_grammar.cpp
+
+        tests/test_lr1_grammar.cpp
         # tests/test_lex.cpp
         # tests/test_parser.cpp
         # tests/test_main.cpp

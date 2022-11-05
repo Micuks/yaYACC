@@ -6,6 +6,7 @@
 #include <iterator>
 #include <sstream>
 #include <unordered_set>
+#include <vector>
 
 vector<Rule> Grammar::atLhsRules(Variable *v) {
     vector<Rule> retVec;
@@ -164,7 +165,8 @@ void Grammar::loadGrammar(const char *filename) {
     }
     // Set start symbol
     startSymbol = variables[0];
-    // Convert cfg to ll(1) grammar
+    // Remember to convert cfg to ll(1) grammar if the grammar is to be used by
+    // ll1 parser.
     file.close();
 }
 
@@ -429,8 +431,30 @@ Grammar::getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
  * Generate augmenteted grammar for LR(1)
  */
 void LR1Grammar::augmenting() {
+#ifdef DEBUG_LR1GRAMMAR
+
+    std::cout << "\nAugmenting:\n";
+#endif // DEBUG_LR1GRAMMAR
+
     Variable *start =
         new Variable(terminals.size() + variables.size(), variables.size(),
                      startSymbol->getIdentifier() + "'");
+    // Append to variables.
+    variables.push_back(start);
+    // Set as new startSymbol.
+    auto oldStartSymbol = startSymbol;
     startSymbol = start;
+
+    // Add new rule S' -> S.
+    Rule newRule(startSymbol, std::vector<Symbol *>{oldStartSymbol});
+    rules.insert(rules.begin(), newRule);
+    // rules.push_back(newRule);
+
+#ifdef DEBUG_LR1GRAMMAR
+    std::cout << "New start symbol: " << *startSymbol << std::endl;
+
+    std::cout << "New rule: " << newRule << std::endl;
+    std::cout << "Rules: ";
+    printRules();
+#endif // DEBUG_LR1GRAMMAR
 }

@@ -12,6 +12,9 @@
 class Grammar {
   public:
     Grammar() : startSymbol(nullptr) {}
+    Grammar(Grammar &g)
+        : terminals((g.terminals)), variables((g.variables)), rules((g.rules)),
+          startSymbol(g.startSymbol), epsilon(g.epsilon), bos(g.bos) {}
     vector<Terminal *> terminals;
     vector<Variable *> variables;
     vector<Rule> rules;
@@ -41,8 +44,19 @@ class Grammar {
                    Variable *lhs, int &tagCnt, int &variablesIndexCnt);
 };
 
+class LL1Grammar : public Grammar {
+  public:
+    LL1Grammar() : Grammar() {}
+    // LL1 grammer need to eliminate left recursion.
+    LL1Grammar(Grammar &g) : Grammar(g) { cfg2LL1(); }
+};
+
 class LR1Grammar : public Grammar {
   public:
+    LR1Grammar() : Grammar() {}
+    LR1Grammar(Grammar &g) : Grammar(g) { augmenting(); }
+
+  private:
     void augmenting();
 };
 #endif // !GRAMMAR_HPP
