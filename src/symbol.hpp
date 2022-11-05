@@ -8,9 +8,8 @@
 
 using namespace std;
 
-enum SymbolType { variable, terminal };
-
 class Symbol {
+
   public:
     Symbol(int tag, int index, string id)
         : tag(tag), index(index), identifier(id) {}
@@ -28,6 +27,8 @@ class Symbol {
     }
 
     friend ostream &operator<<(ostream &os, const Symbol &sym);
+
+    enum SymbolType { variable, terminal };
 
     virtual SymbolType getType() = 0;
 

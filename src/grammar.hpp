@@ -30,7 +30,7 @@ class Grammar {
     Terminal *matchTerminal(string str);
     bool toEpsilonDirectly(Variable *sym);
 
-    void cfg2ll1();
+    void cfg2LL1();
 
   private:
     bool collectVariablesHaveLeftRecursion(
@@ -43,7 +43,6 @@ class Grammar {
 
 class LR1Grammar : public Grammar {
   public:
-    int dotPos;
-    std::string lookAhead;
+    void augmenting();
 };
 #endif // !GRAMMAR_HPP

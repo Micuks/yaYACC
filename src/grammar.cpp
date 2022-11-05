@@ -225,7 +225,7 @@ bool Grammar::toEpsilonDirectly(Variable *sym) {
 }
 
 // private
-void Grammar::cfg2ll1() {
+void Grammar::cfg2LL1() {
     // First, elimite direct left recursion
     bool isLeftRecursionExists = false;
     std::unordered_set<Variable *> variablesWhoseRulesHaveLeftRecursion;
@@ -421,4 +421,16 @@ Grammar::getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
         new Variable(tagCnt++, variablesIndexCnt++, lhs->getIdentifier() + "'");
     newlyAddedVariables.insert(newVariable);
     return newVariable;
+}
+
+// LR1Grammar
+
+/**
+ * Generate augmenteted grammar for LR(1)
+ */
+void LR1Grammar::augmenting() {
+    Variable *start =
+        new Variable(terminals.size() + variables.size(), variables.size(),
+                     startSymbol->getIdentifier() + "'");
+    startSymbol = start;
 }

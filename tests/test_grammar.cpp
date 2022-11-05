@@ -142,7 +142,7 @@ TEST_F(GrammarTest, checkToEpsilonDIrectly) {
 TEST_F(GrammarTest, checkEliminataLeftRecursion) {
     Grammar g = g3_;
     g.printRules();
-    g.cfg2ll1();
+    g.cfg2LL1();
     //
     // std::cout << "g3_.variables: \n";
     // for (auto &a : g3_.variables) {

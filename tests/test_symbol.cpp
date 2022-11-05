@@ -12,7 +12,7 @@ TEST(SymbolTests, VariableCorrectly) {
     Variable var(-1, -1, identifier);
     Terminal ter(-3, -3, "BOTTOM OF STACK", std::regex(regex_identifier));
 
-    EXPECT_EQ(var.getType(), SymbolType(variable));
+    EXPECT_EQ(var.getType(), Symbol::SymbolType::variable);
     EXPECT_EQ(var.getIndex(), -1);
     EXPECT_EQ(var.getIdentifier(), identifier);
     EXPECT_EQ(var.getTag(), -1);
@@ -25,7 +25,7 @@ TEST(SymbolTests, TerminalCorrectly) {
     Variable var(-1, -1, identifier);
     Terminal ter(-3, -3, "BOTTOM OF STACK", std::regex(regex_identifier));
 
-    EXPECT_EQ(ter.getType(), SymbolType(terminal));
+    EXPECT_EQ(ter.getType(), Symbol::SymbolType::terminal);
     EXPECT_EQ(ter.getIndex(), -3);
     EXPECT_EQ(ter.getIdentifier(), "BOTTOM OF STACK");
     EXPECT_EQ(ter.getTag(), -3);

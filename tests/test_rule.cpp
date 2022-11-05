@@ -31,18 +31,18 @@ class RuleTest : public ::testing::Test {
         delete r0_;
 
         for (auto &a : r1_->rhs) {
-            if (a->getType() == SymbolType(variable)) {
+            if (a->getType() == Symbol::SymbolType::variable) {
                 delete (Variable *)a;
-            } else if (a->getType() == SymbolType(terminal)) {
+            } else if (a->getType() == Symbol::SymbolType::terminal) {
                 delete (Terminal *)a;
             }
         }
         delete r1_;
 
         for (auto &a : r2_->rhs) {
-            if (a->getType() == SymbolType(variable)) {
+            if (a->getType() == Symbol::SymbolType::variable) {
                 delete (Variable *)a;
-            } else if (a->getType() == SymbolType(terminal)) {
+            } else if (a->getType() == Symbol::SymbolType::terminal) {
                 delete (Terminal *)a;
             }
         }

@@ -9,6 +9,7 @@
 #include <stack>
 #include <stdexcept>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 // class Parser
@@ -46,7 +47,7 @@ void Parser::parse(std::vector<Terminal *> *tokens) {
             pda.pop();
         } else {
             // Tos failed to match, push symbols onto stack.
-            if (tos->getType() == SymbolType(terminal)) {
+            if (tos->getType() == Symbol::SymbolType::terminal) {
 
                 // Error occurred, unmatch terminal on top of stack
                 throw std::runtime_error(
@@ -307,7 +308,7 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
     std::cout << "currSymbol: " << *s << std::endl;
 #endif // DEBUG_PARSER_FIRST
 
-    if (s->getType() == SymbolType(terminal)) {
+    if (s->getType() == Symbol::SymbolType::terminal) {
         firstSet.insert((Terminal *)s);
     } else {
         // s is non-terminal
@@ -329,14 +330,14 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
                           << ((sym->getType()) ? " [Terminal]" : " [Variable]")
                           << std::endl;
 #endif // DEBUG_PARSER_FIRST
-                if (sym->getType() == SymbolType(terminal)) {
+                if (sym->getType() == Symbol::SymbolType::terminal) {
                     if (sym == epsilon) {
                         continue;
                     } else {
                         nonEpsilonTerminal = (Terminal *)sym;
                         break;
                     }
-                } else if (sym->getType() == SymbolType(variable)) {
+                } else if (sym->getType() == Symbol::SymbolType::variable) {
                     // First symbol at rule.rhs after epsilon is non-terminal.
                     if (grammar->toEpsilonDirectly((Variable *)sym)) {
 #ifdef DEBUG_PARSER_FIRST
@@ -414,10 +415,10 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
     std::cout << *s << " not found in followDict. Calculate it.\n";
 #endif // DEBUG_PARSER_FOLLOW
     std::unordered_set<Terminal *> followSet;
-    if (s->getType() == SymbolType(terminal)) {
+    if (s->getType() == Symbol::SymbolType::terminal) {
         // FOLLOW(s) = BOTTOM_OF_STACK if s is terminal
         followSet.insert(grammar->bos);
-    } else if (s->getType() == SymbolType(variable)) {
+    } else if (s->getType() == Symbol::SymbolType::variable) {
 
 #ifdef DEBUG_PARSER_FOLLOW
         std::cout << "currVariable: " << *s << std::endl;
@@ -604,4 +605,195 @@ Parser::remainingTokensToString(std::vector<Terminal *>::iterator it,
     }
     ss << std::endl;
     return ss.str();
+}
+
+// LR1Parser
+void LR1Parser::getClosure(ItemSet itemSet) {
+    bool isUpdated = true;
+
+    // Repeat until no new item is added.
+    while (isUpdated) {
+        isUpdated = false;
+
+        auto isT = [](Symbol *sym) {
+            return sym->getType() == Symbol::SymbolType::terminal;
+        };
+
+        for (const auto &item : itemSet) {
+            // Reduction item
+            if (item.dotPos == item.rhs.size()) {
+                continue;
+            }
+
+            const auto &leader = item.rhs[item.dotPos];
+
+            // Shift item
+            if (isT(leader)) {
+                continue;
+            }
+
+            // Reduction expecting item
+            std::unordered_set<Terminal *> lookAheads;
+            if (item.dotPos != item.rhs.size() - 1) {
+                // Leader is not the last symbol in the rhs.
+                for (const auto &lookAhead : first(item.rhs[item.dotPos + 1])) {
+                    lookAheads.insert(lookAhead);
+                }
+            } else {
+                // Leader is the last symbol, use the same lookAhead.
+                lookAheads.insert(item.lookAhead);
+            }
+
+            for (auto &r : grammar->atLhsRules((Variable *)leader)) {
+                for (const auto &lookAhead : lookAheads) {
+                    LR1Item newItem(r, 0, lookAhead);
+
+                    // if (itemSet.find(newItem) == itemSet.end())
+                    if (std::find(itemSet.begin(), itemSet.end(), newItem) ==
+                        itemSet.end()) {
+                        // WARNING: Not sure whether this find works fine.
+                        itemSet.insert(newItem);
+                        isUpdated = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+LR1Parser::ItemSet LR1Parser::getGo(ItemSet &itemSet, Symbol *symbolToGo) {
+    ItemSet newItemSet;
+    for (auto &item : itemSet) {
+        // Reduction item
+        if (item.dotPos == item.rhs.size()) {
+            continue;
+        }
+
+        auto &leader = item.rhs[item.dotPos];
+        // If leader is symbolToGo, insert it to newItemSet
+        if (*leader == *symbolToGo) {
+            LR1Item newItem(item);
+            newItem.dotPos++;
+            newItemSet.insert(newItem);
+        }
+    }
+    // Get closure of newItemSet
+    getClosure(newItemSet);
+
+    return newItemSet;
+}
+
+int LR1Parser::go(ItemSet &itemSet, Symbol *sym) {
+    auto newItemSet = getGo(itemSet, sym);
+
+    if (newItemSet.empty()) {
+        return -1;
+    }
+
+    int i = 0;
+    for (; i < itemSets.size(); i++) {
+        const auto &preItemSet = itemSets[i];
+        if (preItemSet == newItemSet) {
+            break;
+        }
+    }
+
+    // go(I, X) is not in itemSets
+    if (i == itemSets.size()) {
+        itemSets.push_back(std::move(newItemSet));
+    }
+
+    // return index of newItemSet
+    return i;
+}
+
+void LR1Parser::parse(std::vector<Terminal *> *tokens) {
+    // Add starting item to initialItemSet
+    auto initItemSet =
+        ItemSet{LR1Item(grammar->atLhsRules(grammar->startSymbol).front(), 0,
+                        grammar->epsilon)};
+
+    // Get closure of initItemSet
+    getClosure(initItemSet);
+
+    itemSets.push_back(initItemSet);
+
+    Rule emptyRule;
+
+    // Loop until no change
+    for (int index = 0; index < itemSets.size(); index++) {
+
+        // Add shift/goto to parseTable
+        for (const auto &var : grammar->variables) {
+            auto goTo = go(itemSets[index], var);
+
+            if (goTo > 0) {
+                parseTable.emplace(
+                    std::make_pair(index, var),
+                    Action{ActionType::SHIFT_GOTO, emptyRule, goTo});
+            }
+        }
+
+        // Add shift/goto to parseTable
+        for (const auto &ter : grammar->terminals) {
+            auto goTo = go(itemSets[index], ter);
+
+            if (goTo > 0) {
+                parseTable.emplace(
+                    std::make_pair(index, ter),
+                    Action{ActionType::SHIFT_GOTO, emptyRule, goTo});
+            }
+        }
+
+        // Add reduce to parseTable
+        for (LR1Item item : itemSets[index]) {
+            if (item.dotPos == item.rhs.size()) {
+                parseTable.emplace(
+                    std::make_pair(index, item.lookAhead),
+                    Action{ActionType::REDUCE, item.getBase(), 0});
+            }
+        }
+    }
+}
+
+void LR1Parser::printLR1ItemSets(std::ostream &os) {
+    int index = 0;
+    os << "\nLR1 Item Sets:\n";
+    for (const auto &itemSet : itemSets) {
+        os << "Item set " << index++ << ":\n";
+        for (const auto &item : itemSet) {
+            os << "\t" << item << std::endl;
+        }
+    }
+}
+
+void LR1Parser::printLR1ParseTable(std::ostream &os) {
+    os << "\nLR1 Parse Table:\n";
+    for (const auto &entry : parseTable) {
+        os << "<" << std::setw(2) << std::right << entry.first.first << ", "
+           << std::setw(5) << std::left << entry.first.second << "> -> ";
+        const auto &action = entry.second;
+
+        switch (action.type) {
+        case LR1Parser::ActionType::REDUCE:
+            if (action.rule.lhs == grammar->startSymbol) {
+                os << "ACC";
+            } else {
+                os << "Reduced by " << action.rule << std::endl;
+            }
+
+            break;
+        case LR1Parser::ActionType::SHIFT_GOTO:
+            auto &symbol = entry.first.second;
+            if (symbol->getType() == Symbol::SymbolType::variable) {
+                os << "Goto " << action.state;
+            } else if (symbol->getType() == Symbol::SymbolType::terminal) {
+                os << "Shift " << action.state;
+            }
+
+            break;
+        }
+
+        os << std::endl;
+    }
 }
