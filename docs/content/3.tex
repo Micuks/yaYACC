@@ -233,6 +233,77 @@ class Lex {
 };
 \end{lstlisting}
 
+tokenize的过程主要使用函数如下:
+\begin{lstlisting}[language=c++]
+std::vector<Terminal *> *tokenize(const char *str);
+\end{lstlisting}
+其伪代码描述如下:
+\begin{lstlisting}[language=c++]
+std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
+    auto tokens = new std::vector<Terminal *>;
+    int idx = 0;
+    char currCh = rawStr[idx++];
+    std::vector<Terminal *> candidateMatches = g->terminals;
+    candidateMatches.push_back(&空白字符);
+    std::string token = "";
+
+    // Match longest match
+    while (currCh) {
+        std::string tmp = token;
+        tmp += currCh;
+        int cntMatch = 0;
+
+        for (auto &a : candidateMatches) {
+            if (tmp满足终结符a的正则表达式) {
+                cntMatch++;
+            }
+        }
+
+        // If matches, expand token. Else validate token and append it to
+        // tokens. If token is invalid, throw exception.
+        if (cntMatch) {
+
+            token += currCh;
+            currCh = rawStr[idx++];
+        } else {
+
+            // Validate token
+            Terminal *t = g->matchTerminal(token);
+            if (t) {
+                tokens->push_back(t);
+            } else if (token不是空白字符串) {
+
+                // Skip whitespace in inputStr. If there's any that remains
+                // unmatched, it means that token is invalid. throw
+                // exception.
+            }
+
+            // Initialize token
+            token = std::string(1, currCh);
+            currCh = rawStr[idx++];
+        }
+
+        // Process last token separately
+        if (currCh == '\0') {
+            Terminal *t = g->matchTerminal(token);
+            if (t) {
+                tokens->push_back(t);
+            } else if (token不是空白字符串) {
+
+                // Skip whitespace in inputStr. If there's any that remains
+                // unmatched, it means that token is invalid. throw
+                // exception.
+            }
+        }
+    }
+
+    // Append BOTTOM OF STACK symbol to token list.
+    tokens->push_back(g->bos);
+
+    return tokens;
+}
+\end{lstlisting}
+
 \subsection{LL1语法分析表的构建}
 LL1语法分析表的构造的定义在parser.hpp中, 实现在parser.cpp中. 构造语法分析表,
 首先要构造first和follow集. 在Parser类中, 有成员属性grammar, 存储LL1文法,
@@ -308,7 +379,236 @@ class Parser {
 };
 \end{lstlisting}
 
+下面介绍LL1语法分析表构造中几个关键过程.
+\subsection{FIRST集的构建}
+FIRST集的构建使用如下函数:
+\begin{lstlisting}[language=c++]
+std::unordered_set<Terminal *> Parser::first(Symbol *s);
+\end{lstlisting}
+
+其伪代码描述如下:
+\begin{lstlisting}[language=c++]
+std::unordered_set<Terminal *> Parser::first(Symbol *s) {
+    /**
+     *
+     * First(s) = {s} if s is terminal.
+     *
+     * If s is non-terminal,
+     * if s -> epsilon, add epsilon to first(s);
+     * for S -> s1s2...sn, if s1s2...s{i-1} -*> epsilon, add si to first(S).
+     *
+     */
+
+    // First check if FIRST(s) has already been calculated.
+    // If FIRST(s) is found in firstDict, return it directly.
+    if (FIRST(S)已经计算过) {
+        return 存储的FIRST(S);
+    }
+
+    // If not found, calculate it.
+    std::unordered_set<Terminal *> firstSet;
+    auto &epsilon = grammar->epsilon;
+
+    if (s是终结符) {
+        firstSet.insert((Terminal *)s);
+    } else {
+        // s is non-terminal
+        vector<Rule> atLhsRules = s在左侧的规则;
+        for (auto &r : atLhsRules) {
+
+            // Check if r can go to epsilon
+            Terminal *nonEpsilonTerminal = nullptr;
+            Variable *nonEpsilonVariable = nullptr;
+            for (r右侧每一个符号sym) {
+                if (sym是终结符) {
+                    if (sym == epsilon) {
+                        continue;
+                    } else {
+                        nonEpsilonTerminal = (Terminal *)sym;
+                        break;
+                    }
+                } else if (sym是非终结符) {
+                    // First symbol at rule.rhs after epsilon is non-terminal.
+                    if (grammar->toEpsilonDirectly((Variable *)sym)) {
+                        continue;
+                    } else {
+                        // Add its First to FIRST(S).
+                        nonEpsilonVariable = (Variable *)sym;
+                    }
+                }
+            }
+            if (nonEpsilonTerminal != nullptr) {
+                // for S -> s1s2...sn, if s1s2...s_{i-1} -*> epsilon, add si
+                // to first(S).
+                将nonEpsilonTerminal添加到FIRST(S).
+            } else if (nonEpsilonVariable != nullptr) {
+                auto firstSetOfSym = first(nonEpsilonVariable);
+                for (auto &a : firstSetOfSym) {
+                    firstSet.insert(a);
+                }
+            } else {
+                // If S -*> epsilon, add epsilon to first(S).
+                将epsilon添加到FIRST(S).
+            }
+        }
+    }
+
+    // Put firstSet to firstDict, 记忆化存储FIRST(S), 避免重复计算.
+    firstDict[s] = new std::unordered_set<Terminal *>(firstSet);
+    return firstSet;
+}
+\end{lstlisting}
+\subsection{FOLLOW集合的构建}
+FOLLOW集合的构建使用如下函数:
+\begin{lstlisting}[language=c++]
+std::unordered_set<Terminal *> Parser::follow(Symbol *s);
+\end{lstlisting}
+其伪代码描述如下:
+\begin{lstlisting}[language=c++]
+/**
+ *
+ * Build FOLLOW(S) for symbol S.
+ *
+ * Add $ to FOLLOW(S) if S is start symbol of grammar;
+ *
+ * for each rule A -> ...S...,
+ * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
+ *
+ * if A -> aSB where EPSILON in FIRST(B), then add FOLLOW(A) to FOLLOW(S).
+ *
+ * if A -> aS then add FOLLOW(A) to FOLLOW(S).
+ *
+ */
+std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
+
+    // First check if FOLLOW(s) has already been calculated.
+    // If FOLLOW(s) is found in followDict, return it directly.
+    if (FOLLOW(S)已经被计算过) {
+        return 已经计算的结果;
+    }
+
+    // If not found, calculate it.
+    std::unordered_set<Terminal *> followSet;
+    if (s是终结符) {
+        FOLLOW(s) = BOTTOM_OF_STACK if s is terminal
+        followSet.insert(grammar->bos);
+    } else if (s是非终结符) {
+
+        auto &epsilon = grammar->epsilon;
+        Add $ to FOLLOW(S) if S is start symbol of grammar.
+        if (s是开始符号) {
+            followSet.insert(栈底符号);
+        }
+
+        auto atRhsRuleSet = s在右侧的规则;
+        * for each rule A -> ...S...,
+        for (auto &r : atRhsRuleSet) {
+            auto posS = s在规则右边的位置;
+
+             * if A -> aSB, then add FIRST(B) - {EPSILON} to FOLLOW(S).
+            if (s不在最后一个) {
+                 If FIRST(current symbol) contains EPSILON,
+                     take next symbol into consideration.
+
+                 * if A -> aSB where EPSILON in FIRST(B), then add
+                 FOLLOW(A) to FOLLOW(S).
+
+            } else if (s是最后一个) {
+                if (s同时也是生成式左边的符号) {
+                     the last symbol of current rule.rhs is the same as
+                     current rule.lhs. Skip it to avoid endless loop.
+                } else {
+
+                     * if A -> aS then add FOLLOW(A) to FOLLOW(S).
+                    }
+                }
+            }
+        }
+    } else {
+        throw std::runtime_error(std::string("ERROR: Unknown Symbol Type"));
+    }
+
+     Resolve unresolved recursive follow() call.
+    followSet = resolveFollow(s, followSet);
+
+    followDict[s] = new std::unordered_set<Terminal *>(followSet);
+    return followSet;
+}
+\end{lstlisting}
+\subsection{LL1语法分析表的构造}
+LL1语法分析表的构造使用如下函数:
+
+\begin{lstlisting}[language=c++]
+void Parser::makeTable();
+\end{lstlisting}
+其伪代码描述如下:
+\begin{lstlisting}[language=c++]
+void Parser::makeTable() {
+     Drop parseTable if it already exists.
+
+     Create new parseTable
+
+    for (int i = 0; i < grammar->rules.size(); i++) {
+
+         for each terminal in FIRST(a), add A->a... to M[A, t].
+
+         If epsilon exists in FIRST(a), add A->a... to M[A, t] for each
+         terminal in FOLLOW(A).
+    }
+}
+\end{lstlisting}
+
 \subsection{LL1语法分析过程的设计}
+LL1语法分析过程使用函数如下:
+\begin{lstlisting}[language=c++]
+void Parser::parse(std::vector<Terminal *> *tokens);
+\end{lstlisting}
+其过程伪代码描述如下:
+\begin{lstlisting}[language=c++]
+void Parser::parse(std::vector<Terminal *> *tokens) {
+    std::stack<Symbol *> pda = std::stack<Symbol *>();
+
+    pda.push(g->bos);
+    pda.push(g->startSymbol);
+
+    while (pda不为空) {
+        const Terminal *token = *it;
+        Symbol *tos = pda.top(); // Top of stack
+
+        // Try to match current terminal in token with symbol at the top of
+        // stack.
+        if (token是tos) {
+
+            // tos matches token
+            it++;
+            currPos++;
+            pda.pop();
+        } else {
+            // Tos failed to match, push symbols onto stack.
+            if (token是terminal) {
+
+                // Error occurred, unmatch terminal on top of stack
+            } else {
+
+                int ruleIdx = Get parseTable[variable][terminal].
+                if (ruleIdx == -1) {
+                    错误处理;
+                }
+
+                Rule r = g->rules[ruleIdx];
+                pda.pop();
+                if (规则r右边不直接有epsilon) {
+                    将规则右边的符号逆序压入pda.
+                }
+            }
+        }
+    }
+
+    std::cout << "INPUT ACCEPTED" << std::endl;
+}
+\end{lstlisting}
+
+至此, LL1语法分析部分已经介绍完毕, 下面进行LR1语法分析部分的介绍:
 
 \subsection{LR1规约项目的设计}
 \subsection{LR1文法的设计}
