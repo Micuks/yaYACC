@@ -68,7 +68,7 @@ class Terminal : public Symbol {
 
     friend ostream &operator<<(ostream &os, const Terminal &sym);
 
-    // private:
+  private:
     regex pattern;
 };
 
