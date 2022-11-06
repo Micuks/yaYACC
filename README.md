@@ -1,6 +1,6 @@
 # yaYACC: 可根据任意给定文法对任意输入进行语法分析的语法分析程序
 
--- yaYACC(yet another YACC)
+yaYACC(yet another YACC)
 
 ## Introduction
 

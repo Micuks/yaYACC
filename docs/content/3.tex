@@ -1,0 +1,320 @@
+\subsection{语法分析程序的设计}
+为了完成从解析所给任意文法到生成分析表,
+并利用分析表分析给定输入字符串是否合法的任务, 将语法分析程序拆分设计如下:
+\begin{itemize}
+	\item 非终结符和终结符的定义, 操作和存储形式;
+	\item 文法生成式以及LR1规约项目的定义, 操作和存储形式;
+	\item LL1文法和LR1文法的数据成员, 方法成员和存储方式,
+	      包括从文件读取语法并转化为适合的形式, 例如LL1文法进行消除左递归操作,
+	      LR1文法需要进行拓广文法操作;
+	\item 读取并依据上面得到的LL1或LR1文法处理字符串形式的输入,
+	      获得作为下面LL1或LR1语法分析程序输入的token串; 为了提高输入文法的灵活性,
+	      支持读取\textbf{正则表达式形式}的终结符, 且正则表达式是终结符的原生数据成员,
+	      并应用在语法分析过程中;
+	\item LL1和LR1语法分析程序的Parser, 包括FIRST, FOLLOW集的计算方法,
+	      对LL1, 有分析表的构建和存储形式; 对LR1,
+	      有能够识别所有活前缀的项目集DFA的构建和存储方法,
+	      以及LR1语法分析表的构建和存储形式, 以及语法分析表中用到的规约,
+	      移进和待约项目的表示形式等;
+	\item googletest的测试的设计;
+	\item CLI用户界面的设计;
+\end{itemize}
+
+对应源代码文件如下:
+
+\begin{lstlisting}
+  cli_parser.cpp
+  cli_parser.hpp
+  grammar.cpp
+  grammar.hpp
+  lex.cpp
+  lex.hpp
+  main.cpp
+  main.hpp
+  parser.cpp
+  parser.hpp
+  rule.cpp
+  rule.hpp
+  symbol.cpp
+  symbol.hpp
+\end{lstlisting}
+
+\subsection{非终结符和终结符的设计}
+定义在Symbol.hpp, 实现在Symbol.cpp中, 由于非终结符(Variable)和终结符(Terminal)共享许多共同点, 在此环节抽象来看,
+唯一的不同就是终结符在我的实现中引入了正则表达式匹配功能. 因此,
+使用共同的基类Symbol, 设计三个成员属性tag, index和identifier,
+其中tag是variable和terminal中孤立的唯一数值标志,
+而index是所有variable和terminal统一的唯一数值标志.
+其中, Identifier是std::string类型, 存储符号的标识符. 得益于这种设计,
+非终结符和终结符的长度不限, 且对大小写字母也没有限制. 对于终结符,
+同时为了满足建立正则表达式pattern的需要, 均使用尖括号"<"和">"括起来.
+涉及Variable和Terminal的同名不同操作的时候, 预留虚函数接口. 具体定义如下:
+\begin{lstlisting}[language=c++]
+class Symbol {
+
+  public:
+    Symbol(int tag, int index, string id)
+        : tag(tag), index(index), identifier(id) {}
+
+    const string getIdentifier() const { return identifier; }
+
+    const int getTag() const { return tag; }
+
+    const int getIndex() const { return index; }
+
+    bool operator==(const Symbol &rhs) const {
+        return (rhs.getIdentifier() == getIdentifier()) &&
+               (rhs.getIndex() == getIndex()) && (rhs.getTag() == getTag());
+        // TODO: Implement !=
+    }
+
+    friend ostream &operator<<(ostream &os, const Symbol &sym);
+
+    enum SymbolType { variable, terminal };
+
+    virtual SymbolType getType() = 0;
+
+    virtual bool matcher(string token) = 0;
+
+    virtual string toString() const;
+
+  private:
+    int tag;
+    int index;
+    string identifier;
+};
+\end{lstlisting}
+
+对于非终结符(Variable),
+与基类Symbol主要的差别是getType()函数返回的是SymbolType::variable,
+即表示此符号的类型是非终结符. 具体定义如下:
+\begin{lstlisting}[language=c++]
+class Variable : public Symbol {
+  public:
+    Variable(int tag, int index, string id) : Symbol(tag, index, id) {}
+
+    SymbolType getType() { return SymbolType(variable); }
+
+    bool matcher(string token) { return -1; } // ?
+
+    friend ostream &operator<<(ostream &os, const Variable &sym);
+};
+\end{lstlisting}
+
+对于终结符(Terminal),
+与基类Symbol的主要区别除了getType()函数的返回是SymbolType::terminal,
+表示是终结符之外, 还有matcher()函数根据成员属性pattern进行正则表达式匹配,
+具体定义如下:
+
+\begin{lstlisting}[language=c++]
+class Terminal : public Symbol {
+  public:
+    Terminal(int tag, int index, string id, regex pattern)
+        : Symbol(tag, index, id), pattern(pattern) {}
+
+    SymbolType getType() { return SymbolType(terminal); }
+
+    bool matcher(string token) {
+        if (token.length() == 0)
+            return false;
+        return (regex_match(token, pattern));
+    }
+
+    friend ostream &operator<<(ostream &os, const Terminal &sym);
+
+  private:
+    regex pattern;
+};
+\end{lstlisting}
+
+\subsection{文法生成式的设计}
+文法生成式, 又叫规则(Rule), 是文法中表示符号之间转换关系的生成式,
+在本程序中定义在Rule.hpp中, 实现在Rule.cpp中, 分为基类Rule和继承类LR1Item,
+其中后者被用在LR1文法的项目集DFA构建和存储中, 将在后面介绍.\par
+
+Rule类主要有两个成员属性: Variable *lhs和std::vector<Symbol *> rhs.
+对于一条语法规则S -> A <b>, 其中, lhs指->左边的S, 而在此处rhs中有两项,
+分别是指向非终结符A和终结符b的指针. 具体定义如下:
+
+\begin{lstlisting}[language=c++]
+class Rule {
+  public:
+    Rule() : lhs(nullptr) {}
+    Rule(Rule &rule) : Rule(rule.lhs, rule.rhs) {}
+    Rule(const Rule &rule) : Rule(rule.lhs, rule.rhs) {}
+    Rule(Variable *lhs, vector<Symbol *> rhs) : lhs(lhs), rhs(std::move(rhs)) {}
+
+    bool leadToEpsilon(const Symbol *epsilon);
+
+    void printRule();
+    std::string toString();
+
+    Variable *lhs;
+    std::vector<Symbol *> rhs;
+};
+
+ostream &operator<<(ostream &os, const Rule &r);
+bool operator==(Rule &ruleA, Rule &ruleB);
+\end{lstlisting}
+
+\subsection{LL1文法的设计}
+文法的定义在Grammar.hpp中, 实现在Grammar.cpp中.
+文法中的成员属性有开始符号startSymbol, 空符号epsilon, 栈底符号bos(指bottom of
+stack), 还有非终结符集合variables, 终结符集合terminals, 规则集合rules.
+在操作方面, 主要函数为获取非终结符v在左边的规则集合atLhsRules(),
+以及获取符号s在右边的规则集合atRhsRules(), 根据tag获取符号的getSymbol(),
+根据字符串进行正则匹配终结符的matchTerminal(),
+判断非终结符是否有直接生成epsilon的toEpsilonDirectly(), 将CFG\footnote{CFG:
+	Context free grammar, 上下文无关文法.}转化为符合LL1要求的文法的cfg2LL1(),
+以及这一部分最重要的从文件加载文法的loadGrammar().具体定义如下:
+
+\begin{lstlisting}[language=c++]
+class Grammar {
+  public:
+    Grammar() : startSymbol(nullptr) {}
+    Grammar(Grammar &g)
+        : terminals((g.terminals)), variables((g.variables)), rules((g.rules)),
+          startSymbol(g.startSymbol), epsilon(g.epsilon), bos(g.bos) {}
+    vector<Terminal *> terminals;
+    vector<Variable *> variables;
+    vector<Rule> rules;
+
+    Variable *startSymbol;
+    Terminal *epsilon = new Terminal(-1, -1, "EPSILON", regex(""));
+    Terminal *bos = new Terminal(-2, 0, "BOTTOM OF STACK", regex(""));
+
+    vector<Rule> atLhsRules(Variable *v);
+    vector<Rule> atRhsRules(Symbol *s);
+
+    void loadGrammar(const char *filename);
+    void loadGrammar(const std::string &filename);
+    void printRules();
+    Symbol *getSymbol(int tag);
+    Terminal *matchTerminal(string str);
+    bool toEpsilonDirectly(Variable *sym);
+
+    void cfg2LL1();
+
+  private:
+    bool collectVariablesHaveLeftRecursion(
+        std::unordered_set<Variable *> &variablesWhoseRulesHaveLeftRecursion);
+
+    Variable *
+    getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
+                   Variable *lhs, int &tagCnt, int &variablesIndexCnt);
+};
+\end{lstlisting}
+其中, LL1文法通过继承已经构造好的文法Gramamr的方式构造:
+\begin{lstlisting}[language=c++]
+class LL1Grammar : public Grammar {
+  public:
+    LL1Grammar() : Grammar() {}
+    // LL1 grammer need to eliminate left recursion.
+    LL1Grammar(Grammar &g) : Grammar(g) { cfg2LL1(); }
+};
+\end{lstlisting}
+
+\subsection{根据正则表达式将输入字符流转化为token流的Lex}
+Lex根据给定文法g, 将输入字符串转化为终结符串, 提供给LL1Parser或者LR1Parser使用.
+其主要成员变量为Grammar *g, 即其存储的文法. Lex定义在Lex.hpp中, 实现在Lex.cpp中,
+具体定义如下:
+\begin{lstlisting}[language=c++]
+class Lex {
+  public:
+    Lex(Grammar *g = nullptr, bool v = false) : g(g), verbose(v) {}
+
+    std::vector<Terminal *> *tokenize(const char *str);
+    std::vector<Terminal *> *tokenize(std::string str);
+
+    Grammar *g;
+
+  private:
+    bool verbose;
+};
+\end{lstlisting}
+
+\subsection{LL1语法分析表的构建}
+LL1语法分析表的构造的定义在parser.hpp中, 实现在parser.cpp中. 构造语法分析表,
+首先要构造first和follow集. 在Parser类中, 有成员属性grammar, 存储LL1文法,
+以及parseTable, 存储分析表, 和lenParseTable, 记录分析表长度. 此外,
+还有firstDict和followDict用于存储计算得到的first集和follow集. 在成员方法方面,
+主要有first()对所给符号s计算FIRST(S),
+并将计算过程中得到的所有first集合存储到firstDict中,
+以及follow()对所给符号s计算FOLLOW(S),
+并将计算过程中得到的所有first集合存储到firstDict中,
+所有follow集合存储到followDict中. 对first和follow集合的计算有如下特点:
+\begin{itemize}
+	\item 对符号s只计算一次,
+	      之后再调用s的first或follow集合的时候直接使用之前计算的结果;
+	\item 仅当用到s的时候, s的first和follow集合才被计算, 减少了等待时间;
+\end{itemize}
+此外, 还有makeTable()成员函数, 用以计算LL1语法分析表.\par
+
+Parser类的具体定义如下:
+\begin{lstlisting}[language=c++]
+class Parser {
+  public:
+    Parser() {}
+    Parser(Grammar *g, bool verbose)
+        : grammar(g), verbose(verbose), lenParseTable(0) {}
+
+    ~Parser() {
+        dropTable();
+
+        for (auto &[k, v] : firstDict) {
+            delete v;
+        }
+
+        for (auto &[k, v] : followDict) {
+            delete v;
+        }
+    }
+
+    void parse(std::vector<Terminal *> *tokens);
+
+    void makeTable();
+    void dropTable();
+
+    void importFromFile(const char *filename);
+    void exportToFile(const char *filename);
+
+    void printFirstTable();
+    void printFollowTable();
+
+    std::string parseTableToString();
+    void printParseTable();
+
+  protected:
+    std::unordered_set<Terminal *> first(Symbol *s);
+    std::unordered_set<Terminal *> follow(Symbol *s);
+
+    std::unordered_set<Terminal *> toResolveFollow(Symbol *rSym);
+    std::unordered_set<Terminal *> &
+    resolveFollow(Symbol *s, std::unordered_set<Terminal *> &followSet);
+
+    std::unordered_map<Symbol *, std::unordered_set<Terminal *> *> firstDict;
+    std::unordered_map<Symbol *, std::unordered_set<Terminal *> *> followDict;
+
+    Grammar *grammar;
+    bool verbose;
+
+  private:
+    std::string stackToString(std::stack<Symbol *> pda);
+    std::string remainingTokensToString(std::vector<Terminal *>::iterator it,
+                                        std::vector<Terminal *> *tokens);
+
+    int **parseTable;
+    int lenParseTable;
+};
+\end{lstlisting}
+
+\subsection{LL1语法分析过程的设计}
+
+\subsection{LR1规约项目的设计}
+\subsection{LR1文法的设计}
+\subsection{LR1语法的项目集DFA的构建}
+\subsection{LR1语法的分析表的构建}
+\subsection{LR1语法分析过程的设计}
+
+\subsection{GoogleTest 单元测试的设计}
+\subsection{CLI用户界面的设计}
