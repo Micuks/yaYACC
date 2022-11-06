@@ -1,17 +1,23 @@
-# LL(1) parser
+# yaYACC: 可根据任意给定文法对任意输入进行语法分析的语法分析程序
+
+-- yaYACC(yet another YACC)
 
 ## Introduction
 
-This is my first parser and I still writing him.
-If you wanna help me, you'll can make a pull requests :3
+可以根据任意给定文法对任意输入进行语法分析, 包括LL(1)和LR(1)两种分析方式.
 
 ## Using
 
-You shoud to provide your LL(1) (!!!!!) in arguments to constructor of parser.
-If you provide not LL(1) grammar anythig might happend.
-Parser.parse will return std::shared_ptr\<Node> - the top elenent of AST.
+运行如下指令可以获得详细说明.
+```bash
+./main --help
+```
 
 ## Testing
 
-make test
-./tests/runtests
+使用Google test进行单元测试.
+
+```bash
+cmake -S . -B build
+./build/test_all
+```

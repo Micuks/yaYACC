@@ -21,6 +21,12 @@ class LR1ParserTest : public ::testing::Test {
         p2_ = new Parser(g2_, true);
         lp2 = LR1Parser(g2_, true);
         l2_ = new Lex(g2_, true);
+
+        g3_ = new Grammar();
+        g3_->loadGrammar("../grammars/g3.txt");
+        p3_ = new Parser(g3_, true);
+        lp3 = LR1Parser(g3_, true);
+        l3_ = new Lex(g3_, true);
     }
 
     // There is memory leak for i didn't free allocated memory for tight time.
@@ -38,6 +44,11 @@ class LR1ParserTest : public ::testing::Test {
     Parser *p2_;
     LR1Parser lp2;
     Lex *l2_;
+
+    Grammar *g3_;
+    Parser *p3_;
+    LR1Parser lp3;
+    Lex *l3_;
 
     std::string str1_0_ = std::string("aaa bbb a");
     std::string str1_1_ = std::string("  a b   ");
@@ -63,6 +74,20 @@ TEST_F(LR1ParserTest, isGrammarLoadedCorrectly) {
 
 TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
     LR1Parser lp = lp2;
+    lp.parse(nullptr);
+    lp.printLR1ItemSets(std::cout);
+    lp.printLR1ParseTable(std::cout);
+}
+
+TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
+    LR1Parser lp = lp2;
+    lp.parse(nullptr);
+    lp.printLR1ItemSets(std::cout);
+    lp.printLR1ParseTable(std::cout);
+}
+
+TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
+    LR1Parser lp = lp3;
     lp.parse(nullptr);
     lp.printLR1ItemSets(std::cout);
     lp.printLR1ParseTable(std::cout);
