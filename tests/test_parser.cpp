@@ -359,9 +359,6 @@ TEST_F(ParserTest, isParseCorrect1_0) {
                 "<b>, "
                 "<b>, <b>, <a>, BOTTOM OF STACK, \n"));
     }
-
-    // Free memory allocated for tokenized input string.
-    delete tok1_0;
 }
 
 TEST_F(ParserTest, isParseCorrect1_1) {
