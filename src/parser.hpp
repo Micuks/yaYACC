@@ -73,6 +73,7 @@ class LR1Parser : public Parser {
         : Parser(LR1Grammar(*g).getBase(), verbose) {}
     // Augmenting via LR1Grammar constructor
 
+    void makeTable();
     void parse(std::vector<Terminal *> *tokens);
 
     void printLR1ItemSets(std::ostream &os);

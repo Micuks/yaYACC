@@ -271,17 +271,16 @@ void Parser::printFollowTable() {
     }
 }
 
-// private:
+/**
+ *
+ * First(s) = {s} if s is terminal.
+ *
+ * If s is non-terminal,
+ * if s -> epsilon, add epsilon to first(s);
+ * for S -> s1s2...sn, if s1s2...s{i-1} -*> epsilon, add si to first(S).
+ *
+ */
 std::unordered_set<Terminal *> Parser::first(Symbol *s) {
-    /**
-     *
-     * First(s) = {s} if s is terminal.
-     *
-     * If s is non-terminal,
-     * if s -> epsilon, add epsilon to first(s);
-     * for S -> s1s2...sn, if s1s2...s{i-1} -*> epsilon, add si to first(S).
-     *
-     */
 
     // First check if FIRST(s) has already been calculated.
     // If FIRST(s) is found in firstDict, return it directly.
@@ -720,7 +719,7 @@ void LR1Parser::printItemSet(const ItemSet &itemSet, std::ostream &os) {
     }
 }
 
-void LR1Parser::parse(std::vector<Terminal *> *tokens) {
+void LR1Parser::makeTable() {
     // Add starting item to initialItemSet
     auto initItemSet =
         ItemSet{LR1Item(grammar->atLhsRules(grammar->startSymbol).front(), 0,
@@ -817,5 +816,138 @@ void LR1Parser::printLR1ParseTable(std::ostream &os) {
         }
 
         os << std::endl;
+    }
+}
+
+void LR1Parser::parse(std::vector<Terminal *> *tokens) {
+    std::vector<int> stateStack;
+    std::vector<Symbol *> symbolStack;
+
+    // Init stateStack
+    stateStack.push_back(0);
+
+    // Verbose output
+    std::vector<std::tuple<std::string, std::string, std::string>> output;
+
+    int width1 = 5;
+    int width2 = 6;
+    int width3 = 6;
+
+    std::stringstream stackSs;
+    std::stringstream inputSs;
+    std::stringstream actionSs;
+
+    try {
+        for (auto pToken = tokens->begin(); pToken != tokens->end(); pToken++) {
+            auto state = stateStack.back();
+            const auto &token = *pToken;
+
+            // Stack
+            stackSs << stateStack.front() << " ";
+            for (int i = 0; i < symbolStack.size(); i++) {
+                stackSs << stateStack[i] << " ";
+                stackSs << stateStack[i + 1] << " ";
+            }
+            if (width1 < stackSs.str().size()) {
+                width1 = stackSs.str().size();
+            }
+
+            // Tokens
+            inputSs.clear();
+            for (auto p = pToken; p != tokens->end(); p++) {
+                inputSs << **p;
+            }
+            if (width2 < inputSs.str().size()) {
+                width2 = inputSs.str().size();
+            }
+
+            // Action
+            LR1Parser::Action action;
+            try {
+                action = parseTable.at(std::make_pair(state, token));
+                // WARNING: Not sure whether token stored in Terminal * type can
+                // be accessed via this way.
+
+            } catch (...) {
+
+                stringstream ss;
+                ss << "No action for (" << state << ", " << *token << ")";
+                throw std::runtime_error(ss.str());
+            }
+
+            switch (action.type) {
+            case LR1Parser::ActionType::SHIFT_GOTO:
+                // Output
+                actionSs.clear();
+                actionSs << "Shift " << action.state;
+
+                // Action
+                stateStack.push_back(action.state);
+                symbolStack.push_back(token);
+                pToken++;
+                break;
+
+            case LR1Parser::ActionType::REDUCE:
+                if (action.rule.lhs == grammar->startSymbol) {
+                    // Accept input, exit parsing...
+
+                    // Output
+                    actionSs.clear();
+                    actionSs << "ACCEPT";
+
+                    // Action
+                    pToken = tokens->end();
+                } else {
+                    auto lhsReducedTo = action.rule.lhs;
+
+                    // Output
+                    actionSs.clear();
+                    actionSs << "Reduced by " << action.rule;
+
+                    // Action: reduce k symbols and their states
+                    for (auto &a : action.rule.rhs) {
+                        symbolStack.pop_back();
+                        stateStack.pop_back();
+                    }
+
+                    try {
+                        action = parseTable.at(
+                            std::make_pair(stateStack.back(), lhsReducedTo));
+                    } catch (...) {
+                        stringstream ss;
+                        ss << "No GOTO for (" << stateStack.back() << ", "
+                           << lhsReducedTo << ")";
+                        throw std::runtime_error(ss.str());
+                    }
+
+                    if (action.type != LR1Parser::ActionType::SHIFT_GOTO) {
+                        stringstream ss;
+                        ss << "Bad GOTO for (" << stateStack.back() << ", "
+                           << lhsReducedTo << ")";
+                    }
+
+                    // action.type is SHIFT_GOTO
+                    stateStack.push_back(action.state);
+                    symbolStack.push_back(lhsReducedTo);
+                }
+                break;
+            default:
+                throw std::runtime_error(
+                    "ERROR: Unknown action type! (I didn't define another "
+                    "action type in my memory :-/)");
+                break;
+            }
+
+            // Output
+            output.emplace_back(stackSs.str(), inputSs.str(), actionSs.str());
+        }
+    } catch (const std::exception &e) {
+        actionSs.clear();
+        actionSs << e.what();
+
+        output.emplace_back(stackSs.str(), inputSs.str(), actionSs.str());
+        if (width3 < actionSs.str().size()) {
+            width3 = actionSs.str().size();
+        }
     }
 }
