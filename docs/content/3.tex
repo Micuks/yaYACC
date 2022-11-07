@@ -1064,3 +1064,77 @@ lp1判断其加载的语法的起始符是否为所给文法的拓广文法起�
 
 程序使用-g读取存储在文件中的语法, 可选使用-i参数来处理存储在文件中的字符串,
 或者使用-s参数来处理作为参数传给程序的字符串;
+
+\subsection{递归下降方法求算术表达式}
+递归下降方法数域自顶向下分析方法. 自顶向下分析方法是一种面向目标的分析方法.
+分析从文法的开始符号开始, 进行推导, 试图推出与输入符号串完全匹配的句子.
+氛围非确定的和确定的两类, 不确定的分析方法是带回溯的分析方法,
+实际上是一种穷举的试探方法, 效率低, 代价高, 一般极少采用.\par
+
+递归下降方法是一种非确定的语法分析方法, 本质上是一种试探的过程,
+即反复使用不同的产生式谋求匹配输入符号串的过程. 具体的伪代码如下:
+\begin{lstlisting}[language=c++]
+/**
+ * Calculate the calue of an expression
+ */
+int RecursiveCalculation::expressionValue() {
+    int result = 求所给表达式的一个项的值, 项可以是乘除法,
+        可以是带括号的表达式, 可以是一个值;
+    bool more = true;
+    while (more) {
+        if (字符是+或-) {
+            std::cin.get();
+            int value = termValue(); // 下一个表达式的值
+            if (字符是+)
+                result += value;
+            else
+                result -= value;
+        } else
+            more = false;
+    }
+    return result;
+}
+
+/**
+ * calculate the value of a single item
+ */
+int RecursiveCalculation::termValue() {
+    int result = factorValue();
+    while (true) {
+        char op = std::cin.peek();
+        if (op是*或/) {
+            std::cin.get();
+            int value = factorValue(); // 下一个因子的值
+            if (op是*)
+                result *= value;
+            else
+                result /= value;
+        } else
+            break;
+    }
+    return result;
+}
+
+/**
+ * Calculate the value of a single factor
+ */
+int RecursiveCalculation::factorValue() {
+    int result = 0;
+    char c = std::cin.peek();
+    if (c是'(') { // 因子是一个表达式
+        std::cin.get();
+        result = expressionValue(); // 递归
+        std::cin.get();
+    } else { // 因子是个整数
+        while (isdigit(c)) {
+            result = 10 * result + c - '0';
+            std::cin.get();
+            c = 输入流的下一个字符;
+        }
+    }
+    return result;
+}
+\end{lstlisting}
+
+\subsection{YACC自动生成语法分析程序求算数表达式}
+
