@@ -123,12 +123,6 @@ LR(1)分析表如LR1 Parse Table部分,
 	\label{fig:复杂文法的LR1分析1}
 \end{figure}
 
-对较复杂的输入串"(33+34)*(45*32)+8*(3*1+3)"进行分析, 结果为接受,
-如图\ref{fig:复杂文法的LR1分析2}.
-由于输入的文法中对数字均使用了相同的正则表达式表示, 所以Tokens看起来不清晰.
-可以通过替换grammar文法文件解决, 例如将g3.txt中的<[0-9]*>替换为<0> | <1> | <2> |
-... | <9>.
-
 \begin{figure}[ht!]
 	\begin{center}
 		\includegraphics[width=0.95\textwidth]{figures/lr1复杂分析2.png}
@@ -137,7 +131,11 @@ LR(1)分析表如LR1 Parse Table部分,
 	\label{fig:复杂文法的LR1分析2}
 \end{figure}
 
-对错误的输入能够正确拒绝, 如图\ref{fig:复杂文法的LR1分析3}.
+对较复杂的输入串"(33+34)*(45*32)+8*(3*1+3)"进行分析, 结果为接受,
+如图\ref{fig:复杂文法的LR1分析2}.
+由于输入的文法中对数字均使用了相同的正则表达式表示, 所以Tokens看起来不清晰.
+可以通过替换grammar文法文件解决, 例如将g3.txt中的<[0-9]*>替换为<0> | <1> | <2> |
+... | <9>.
 
 \begin{figure}[ht!]
 	\begin{center}
@@ -145,4 +143,32 @@ LR(1)分析表如LR1 Parse Table部分,
 	\end{center}
 	\caption{复杂文法的LR1分析3}
 	\label{fig:复杂文法的LR1分析3}
+\end{figure}
+
+对错误的输入能够正确拒绝, 如图\ref{fig:复杂文法的LR1分析3}.
+
+\subsection{递归下降分析}
+对较简单的输入串"423*384*23",
+以及较复杂的输入串"(33+34)*(45*32)+8*(3*1+3)"进行测试, 得到输出均正确.
+
+\begin{figure}[ht!]
+	\begin{center}
+		\includegraphics[width=0.95\textwidth]{figures/recursive_analysis.png}
+	\end{center}
+	\caption{递归下降分析测试}
+	\label{fig:递归下降分析测试}
+\end{figure}
+
+\subsection{YACC生成的语法分析程序}
+
+对较简单的输入串"423*384*23",
+以及较复杂的输入串"(33+34)*(45*32)+8*(3*1+3)"进行测试, 得到输出均正确.
+对于错误的输入串, 可以正确拒绝如图.
+
+\begin{figure}[ht!]
+	\begin{center}
+		\includegraphics[width=0.95\textwidth]{figures/yacc_analysis.png}
+	\end{center}
+	\caption{YACC生成的语法分析程序测试}
+	\label{fig:YACC生成的语法分析程序测试}
 \end{figure}
