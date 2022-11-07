@@ -72,9 +72,67 @@ TEST_F(LR1ParserTest, isGrammarLoadedCorrectly) {
     g->printRules();
 }
 
-TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
-    LR1Parser lp = lp3;
-    lp.parse(nullptr);
+TEST_F(LR1ParserTest, generateLR1DFAAndParseTable2) {
+    LR1Parser lp = lp2;
+    lp.makeTable();
     lp.printLR1ItemSets(std::cout);
     lp.printLR1ParseTable(std::cout);
+}
+
+TEST_F(LR1ParserTest, generateLR1DFAAndParseTable3) {
+    LR1Parser lp = lp3;
+    lp.makeTable();
+    lp.printLR1ItemSets(std::cout);
+    lp.printLR1ParseTable(std::cout);
+}
+
+TEST_F(LR1ParserTest, parseTest1) {
+    std::string str = "ab";
+
+    LR1Parser lp = lp1;
+    Lex l = *l1_;
+
+    auto tokens = l.tokenize(str);
+
+    lp.makeTable();
+    lp.printLR1ItemSets(std::cout);
+    lp.printLR1ParseTable(std::cout);
+    lp.parse(tokens);
+}
+
+TEST_F(LR1ParserTest, parseTest3) {
+    std::string str = str2_1_;
+
+    LR1Parser lp = lp3;
+    Lex l = *l3_;
+
+    auto tokens = l.tokenize(str);
+
+    lp.makeTable();
+    lp.parse(tokens);
+}
+
+TEST_F(LR1ParserTest, parseTest31) {
+    std::string str = str2_21_;
+
+    LR1Parser lp = lp3;
+    Lex l = *l3_;
+
+    auto tokens = l.tokenize(str);
+
+    lp.makeTable();
+    lp.parse(tokens);
+}
+
+TEST_F(LR1ParserTest, parseTest32) {
+    std::string str = str2_3_;
+
+    LR1Parser lp = lp3;
+    Lex l = *l3_;
+
+    auto tokens = l.tokenize(str);
+
+    lp.makeTable();
+    lp.parse(tokens);
+    std::string("This input is expected to be rejected.\n");
 }

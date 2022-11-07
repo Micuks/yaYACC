@@ -1,7 +1,6 @@
 #include "parser.hpp"
 #include "rule.hpp"
 #include "symbol.hpp"
-#include <cassert>
 #include <exception>
 #include <iomanip>
 #include <iostream>
@@ -9,7 +8,6 @@
 #include <stack>
 #include <stdexcept>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 // class Parser
@@ -721,24 +719,11 @@ void LR1Parser::printItemSet(const ItemSet &itemSet, std::ostream &os) {
 
 void LR1Parser::makeTable() {
     // Add starting item to initialItemSet
-    auto initItemSet =
-        ItemSet{LR1Item(grammar->atLhsRules(grammar->startSymbol).front(), 0,
-                        grammar->epsilon)};
-
-#ifdef DEBUG_LR1PARSER
-
-    std::cout << "\nBefore getClosure:\n";
-    printItemSet(initItemSet, cout);
-#endif // DEBUG_LR1PARSER
+    auto initItemSet = ItemSet{LR1Item(
+        grammar->atLhsRules(grammar->startSymbol).front(), 0, grammar->bos)};
 
     // Get closure of initItemSet
     getClosure(initItemSet);
-#ifdef DEBUG_LR1PARSER
-
-    std::cout << "\nAfter getClosure:\n";
-    printItemSet(initItemSet, cout);
-#endif // DEBUG_LR1PARSER
-
     itemSets.push_back(initItemSet);
 
     Rule emptyRule;
@@ -838,14 +823,15 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
     std::stringstream actionSs;
 
     try {
-        for (auto pToken = tokens->begin(); pToken != tokens->end(); pToken++) {
+        for (auto pToken = tokens->begin(); pToken != tokens->end();) {
             auto state = stateStack.back();
             const auto &token = *pToken;
 
             // Stack
+            stackSs = stringstream();
             stackSs << stateStack.front() << " ";
             for (int i = 0; i < symbolStack.size(); i++) {
-                stackSs << stateStack[i] << " ";
+                stackSs << *(symbolStack[i]) << " ";
                 stackSs << stateStack[i + 1] << " ";
             }
             if (width1 < stackSs.str().size()) {
@@ -853,7 +839,7 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
             }
 
             // Tokens
-            inputSs.clear();
+            inputSs = stringstream();
             for (auto p = pToken; p != tokens->end(); p++) {
                 inputSs << **p;
             }
@@ -878,7 +864,7 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
             switch (action.type) {
             case LR1Parser::ActionType::SHIFT_GOTO:
                 // Output
-                actionSs.clear();
+                actionSs = stringstream();
                 actionSs << "Shift " << action.state;
 
                 // Action
@@ -892,7 +878,7 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
                     // Accept input, exit parsing...
 
                     // Output
-                    actionSs.clear();
+                    actionSs = stringstream();
                     actionSs << "ACCEPT";
 
                     // Action
@@ -901,7 +887,7 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
                     auto lhsReducedTo = action.rule.lhs;
 
                     // Output
-                    actionSs.clear();
+                    actionSs = stringstream();
                     actionSs << "Reduced by " << action.rule;
 
                     // Action: reduce k symbols and their states
@@ -942,12 +928,27 @@ void LR1Parser::parse(std::vector<Terminal *> *tokens) {
             output.emplace_back(stackSs.str(), inputSs.str(), actionSs.str());
         }
     } catch (const std::exception &e) {
-        actionSs.clear();
+        actionSs = stringstream();
         actionSs << e.what();
 
         output.emplace_back(stackSs.str(), inputSs.str(), actionSs.str());
         if (width3 < actionSs.str().size()) {
             width3 = actionSs.str().size();
         }
+    }
+
+    std::cout << std::setw(width1) << std::left << "Stack"
+              << " | " << std::setw(width2) << std::left << "Tokens"
+              << " | "
+              << "Action" << std::endl
+              << std::setfill('-') << std::setw(width1) << "-"
+              << " | " << std::setw(width2) << "-"
+              << " | " << std::setw(width3) << "-" << std::endl
+              << std::setfill(' ');
+
+    for (const auto &a : output) {
+        std::cout << std::setw(width1) << std::left << std::get<0>(a) << " | "
+                  << std::setw(width2) << std::right << std::get<1>(a) << " | "
+                  << std::get<2>(a) << std::endl;
     }
 }
