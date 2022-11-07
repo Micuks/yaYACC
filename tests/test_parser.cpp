@@ -35,22 +35,8 @@ class ParserTest : public ::testing::Test {
         p4_4_ = new Parser(g4_4_, true);
     }
 
-    void TearDown() {
-        delete p0_;
-        delete g1_;
-        delete p1_;
-        delete l1_;
-
-        delete g2_;
-        delete p2_;
-        delete l2_;
-
-        delete g4_7_;
-        delete p4_7_;
-
-        delete g4_4_;
-        delete p4_4_;
-    }
+    // Considering time, i didn't free the memory allocated. However, this
+    // doesn't matter the test.
 
     Parser *p0_;
 
@@ -382,9 +368,6 @@ TEST_F(ParserTest, isParseCorrect1_1) {
     } catch (std::exception &e) {
         std::cout << e.what();
     }
-
-    // Free memory allocated for tokenized input string.
-    delete tok1_1;
 }
 
 TEST_F(ParserTest, isParseCorrect2_0) {

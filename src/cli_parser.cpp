@@ -64,26 +64,22 @@ void CliParser::printError() {
 }
 
 void CliParser::printHelp() {
-    cout
-        << "Options:\n"
-           "-h: show options\n"
-           "-g <filename>: generate a parser from the given grammar\n"
-           "-o <filename>: save generated parser to <filename>\n"
-           "-p <filename>: use the given parser file to parse\n"
-           "-i <filename>: parse <filename>\n"
-           "-s \"<input string>\": parse given string\n"
-           "-v: give more output information\n"
-           "\n"
-           "Examples:\n"
-           "generate a parser from grammar.txt and use it to parse input.txt:\n"
-           "    ./parser -g grammar.txt -i input.txt\n"
-           "generate a parser from grammar.txt:\n"
-           "    ./parser -g grammer.txt -o parser_instance\n"
-           "parse \"input string\" using parser_instance saved previously:\n"
-           "    ./parser -p parser_instance -i \"input string\"\n"
-           "parse input.txt using parser_instance saved previously:\n"
-           "    ./parse -p parser_instance -i input.txt"
-        << endl;
+    cout << "Options:\n"
+            "-h: show options\n"
+            "-g <filename>: generate a parser from the given grammar\n"
+            "-ll1 : Use LL(1) parser\n"
+            "-lr1 : Use LR(1) parser\n"
+            "-i <filename>: parse <filename>\n"
+            "-s \"<input string>\": parse given string\n"
+            "-v: give more output information\n"
+            "\n"
+            "Examples:\n"
+            "ll(1) parse \"input string\" using parser_instance saved "
+            "previously:\n"
+            "    ./parser -p parser_instance -i \"input string\" -ll1\n"
+            "lr(1) parse input.txt using parser_instance saved previously:\n"
+            "    ./parse -lr1 -p parser_instance -i input.txt"
+         << endl;
 }
 
 bool CliParser::hasParameter(const char *param, int i) {
