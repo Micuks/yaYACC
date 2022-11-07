@@ -68,16 +68,16 @@ TEST_F(LR1ParserTest, isGrammarLoadedCorrectly) {
 
     EXPECT_EQ(g->startSymbol->getIdentifier(), "S'");
 
-    g = lp2.grammar;
+    g = lp3.grammar;
     g->printRules();
 }
 
-TEST_F(LR1ParserTest, generateLR1DFAAndParseTable2) {
-    LR1Parser lp = lp2;
-    lp.makeTable();
-    lp.printLR1ItemSets(std::cout);
-    lp.printLR1ParseTable(std::cout);
-}
+// TEST_F(LR1ParserTest, generateLR1DFAAndParseTable2) {
+//     LR1Parser lp = lp2;
+//     lp.makeTable();
+//     lp.printLR1ItemSets(std::cout);
+//     lp.printLR1ParseTable(std::cout);
+// }
 
 TEST_F(LR1ParserTest, generateLR1DFAAndParseTable3) {
     LR1Parser lp = lp3;

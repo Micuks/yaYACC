@@ -1,4 +1,4 @@
-\subsection{语法分析程序的设计}
+\subsection{语法分析程序的整体设计}
 为了完成从解析所给任意文法到生成分析表,
 并利用分析表分析给定输入字符串是否合法的任务, 将语法分析程序拆分设计如下:
 \begin{itemize}
@@ -39,15 +39,17 @@
   symbol.hpp
 \end{lstlisting}
 
-\subsection{非终结符和终结符的设计}
+\subsection{LL1语法分析程序}
+\subsubsection{非终结符和终结符的设计}
 定义在Symbol.hpp, 实现在Symbol.cpp中, 由于非终结符(Variable)和终结符(Terminal)共享许多共同点, 在此环节抽象来看,
 唯一的不同就是终结符在我的实现中引入了正则表达式匹配功能. 因此,
 使用共同的基类Symbol, 设计三个成员属性tag, index和identifier,
 其中tag是variable和terminal中孤立的唯一数值标志,
 而index是所有variable和terminal统一的唯一数值标志.
-其中, Identifier是std::string类型, 存储符号的标识符. 得益于这种设计,
-非终结符和终结符的长度不限, 且对大小写字母也没有限制. 对于终结符,
-同时为了满足建立正则表达式pattern的需要, 均使用尖括号"<"和">"括起来.
+其中, Identifier是std::string类型, 存储符号的标识符.\par
+
+得益于这种设计, 非终结符和终结符的长度不限, 且对大小写字母也没有限制.
+对于终结符, 同时为了满足建立正则表达式pattern的需要, 均使用尖括号"<"和">"括起来.
 涉及Variable和Terminal的同名不同操作的时候, 预留虚函数接口. 具体定义如下:
 \begin{lstlisting}[language=c++]
 class Symbol {
@@ -65,7 +67,6 @@ class Symbol {
     bool operator==(const Symbol &rhs) const {
         return (rhs.getIdentifier() == getIdentifier()) &&
                (rhs.getIndex() == getIndex()) && (rhs.getTag() == getTag());
-        // TODO: Implement !=
     }
 
     friend ostream &operator<<(ostream &os, const Symbol &sym);
@@ -127,7 +128,7 @@ class Terminal : public Symbol {
 };
 \end{lstlisting}
 
-\subsection{文法生成式的设计}
+\subsubsection{文法生成式的设计}
 文法生成式, 又叫规则(Rule), 是文法中表示符号之间转换关系的生成式,
 在本程序中定义在Rule.hpp中, 实现在Rule.cpp中, 分为基类Rule和继承类LR1Item,
 其中后者被用在LR1文法的项目集DFA构建和存储中, 将在后面介绍.\par
@@ -157,10 +158,11 @@ ostream &operator<<(ostream &os, const Rule &r);
 bool operator==(Rule &ruleA, Rule &ruleB);
 \end{lstlisting}
 
-\subsection{LL1文法的设计}
+\subsubsection{LL(1)文法的设计}
 文法的定义在Grammar.hpp中, 实现在Grammar.cpp中.
 文法中的成员属性有开始符号startSymbol, 空符号epsilon, 栈底符号bos(指bottom of
-stack), 还有非终结符集合variables, 终结符集合terminals, 规则集合rules.
+stack), 还有非终结符集合variables, 终结符集合terminals, 规则集合rules.\par
+
 在操作方面, 主要函数为获取非终结符v在左边的规则集合atLhsRules(),
 以及获取符号s在右边的规则集合atRhsRules(), 根据tag获取符号的getSymbol(),
 根据字符串进行正则匹配终结符的matchTerminal(),
@@ -204,7 +206,7 @@ class Grammar {
                    Variable *lhs, int &tagCnt, int &variablesIndexCnt);
 };
 \end{lstlisting}
-其中, LL1文法通过继承已经构造好的文法Gramamr的方式构造:
+其中, LL(1)文法通过继承已经构造好的文法Gramamr的方式构造:
 \begin{lstlisting}[language=c++]
 class LL1Grammar : public Grammar {
   public:
@@ -214,7 +216,7 @@ class LL1Grammar : public Grammar {
 };
 \end{lstlisting}
 
-\subsection{根据正则表达式将输入字符流转化为token流的Lex}
+\subsubsection{根据正则表达式将输入字符流转化为token流的Lex}
 Lex根据给定文法g, 将输入字符串转化为终结符串, 提供给LL1Parser或者LR1Parser使用.
 其主要成员变量为Grammar *g, 即其存储的文法. Lex定义在Lex.hpp中, 实现在Lex.cpp中,
 具体定义如下:
@@ -259,29 +261,8 @@ std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
             }
         }
 
-        // If matches, expand token. Else validate token and append it to
-        // tokens. If token is invalid, throw exception.
-        if (cntMatch) {
-
-            token += currCh;
-            currCh = rawStr[idx++];
-        } else {
-
-            // Validate token
-            Terminal *t = g->matchTerminal(token);
-            if (t) {
-                tokens->push_back(t);
-            } else if (token不是空白字符串) {
-
-                // Skip whitespace in inputStr. If there's any that remains
-                // unmatched, it means that token is invalid. throw
-                // exception.
-            }
-
-            // Initialize token
-            token = std::string(1, currCh);
-            currCh = rawStr[idx++];
-        }
+        If matches, expand token. Else validate token and append it to
+        tokens. If token is invalid, throw exception.
 
         // Process last token separately
         if (currCh == '\0') {
@@ -304,22 +285,25 @@ std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
 }
 \end{lstlisting}
 
-\subsection{LL1语法分析表的构建}
+\subsubsection{LL1语法分析表的构建}
 LL1语法分析表的构造的定义在parser.hpp中, 实现在parser.cpp中. 构造语法分析表,
 首先要构造first和follow集. 在Parser类中, 有成员属性grammar, 存储LL1文法,
 以及parseTable, 存储分析表, 和lenParseTable, 记录分析表长度. 此外,
-还有firstDict和followDict用于存储计算得到的first集和follow集. 在成员方法方面,
-主要有first()对所给符号s计算FIRST(S),
+还有firstDict和followDict用于存储计算得到的first集和follow集.\par
+
+在成员方法方面, 主要有first()对所给符号s计算FIRST(S),
 并将计算过程中得到的所有first集合存储到firstDict中,
 以及follow()对所给符号s计算FOLLOW(S),
 并将计算过程中得到的所有first集合存储到firstDict中,
-所有follow集合存储到followDict中. 对first和follow集合的计算有如下特点:
+所有follow集合存储到followDict中.\par
+
+对first和follow集合的计算有如下特点:
 \begin{itemize}
 	\item 对符号s只计算一次,
 	      之后再调用s的first或follow集合的时候直接使用之前计算的结果;
 	\item 仅当用到s的时候, s的first和follow集合才被计算, 减少了等待时间;
 \end{itemize}
-此外, 还有makeTable()成员函数, 用以计算LL1语法分析表.\par
+此外, 还有makeTable()成员函数, 用以计算LL(1)语法分析表.\par
 
 Parser类的具体定义如下:
 \begin{lstlisting}[language=c++]
@@ -380,7 +364,7 @@ class Parser {
 \end{lstlisting}
 
 下面介绍LL1语法分析表构造中几个关键过程.
-\subsection{FIRST集的构建}
+\subsubsection{FIRST集的构建}
 FIRST集的构建使用如下函数:
 \begin{lstlisting}[language=c++]
 std::unordered_set<Terminal *> Parser::first(Symbol *s);
@@ -458,7 +442,7 @@ std::unordered_set<Terminal *> Parser::first(Symbol *s) {
     return firstSet;
 }
 \end{lstlisting}
-\subsection{FOLLOW集合的构建}
+\subsubsection{FOLLOW集合的构建}
 FOLLOW集合的构建使用如下函数:
 \begin{lstlisting}[language=c++]
 std::unordered_set<Terminal *> Parser::follow(Symbol *s);
@@ -535,8 +519,8 @@ std::unordered_set<Terminal *> Parser::follow(Symbol *s) {
     return followSet;
 }
 \end{lstlisting}
-\subsection{LL1语法分析表的构造}
-LL1语法分析表的构造使用如下函数:
+\subsubsection{LL(1)语法分析表的构造}
+LL(1)语法分析表的构造使用如下函数:
 
 \begin{lstlisting}[language=c++]
 void Parser::makeTable();
@@ -558,8 +542,8 @@ void Parser::makeTable() {
 }
 \end{lstlisting}
 
-\subsection{LL1语法分析过程的设计}
-LL1语法分析过程使用函数如下:
+\subsubsection{LL(1)语法分析过程的设计}
+LL(1)语法分析过程使用函数如下:
 \begin{lstlisting}[language=c++]
 void Parser::parse(std::vector<Terminal *> *tokens);
 \end{lstlisting}
@@ -610,8 +594,9 @@ void Parser::parse(std::vector<Terminal *> *tokens) {
 
 至此, LL1语法分析部分已经介绍完毕, 下面进行LR1语法分析部分的介绍:
 
-\subsection{LR1规约项目的设计}
-LR1规约项目(LR1Item)在规则Rule的基础上, 添加了当前符号标识"\~",
+\subsection{LR(1)语法分析程序的设计}
+\subsubsection{LR(1)规约项目的设计}
+LR(1)规约项目(LR1Item)在规则Rule的基础上, 添加了当前符号标识$\sim$,
 以及向前看符号lookAhead. 因此, 在基类Rule的基础上,
 派生类LR1Item增加了属性成员dotPos和lookAhead.  其类定义如下:
 \begin{lstlisting}[language=c++]
@@ -638,8 +623,8 @@ bool operator==(LR1Item &itemA, LR1Item &itemB);
 bool operator==(const LR1Item &itemA, const LR1Item &itemB);
 \end{lstlisting}
 
-\subsection{LR1文法的设计}
-LR1文法(LR1Grammar)在文法Grammar的基础上, 增加了拓广文法的操作. 类定义如下:
+\subsubsection{LR(1)文法的设计}
+LR(1)文法(LR1Grammar)在文法Grammar的基础上, 增加了拓广文法的操作. 类定义如下:
 \begin{lstlisting}[language=c++]
 class LR1Grammar : public Grammar {
   public:
@@ -653,7 +638,7 @@ class LR1Grammar : public Grammar {
 };
 \end{lstlisting}
 
-\subsection{拓广文法}
+\subsubsection{拓广文法}
 拓广文法操作使用函数
 \begin{lstlisting}[language=c++]
 void LR1Grammar::augmenting();
@@ -661,8 +646,8 @@ void LR1Grammar::augmenting();
 主要操作为, 若原开始符号为S, 则新增符号S', 作为新的开始符, 并新增规则S'->S,
 为LR1语法分析项目集DFA, 分析表的构建以及语法分析过程做准备.
 
-\subsection{LR1语法分析}
-LR1语法分析使用类LR1Parser, 基于基类Parser, 主要是改用了项目集DFA,
+\subsubsection{LR(1)语法分析}
+LR(1)语法分析使用类LR1Parser, 基于基类Parser, 主要是改用了项目集DFA,
 以及新的分析表格式. 其具体类定义如下:
 \begin{lstlisting}[language=c++]
 class LR1Parser : public Parser {
@@ -721,8 +706,8 @@ class LR1Parser : public Parser {
 };
 \end{lstlisting}
 
-\subsection{LR1语法的项目集DFA的构建以及LR1语法的分析表的构建}
-项目集DFA和LR1语法分析表的构建关键在于获取闭包的函数getClosure()的设计,
+\subsubsection{LR(1)语法的项目集DFA的构建以及LR(1)语法的分析表的构建}
+项目集DFA和LR(1)语法分析表的构建关键在于获取闭包的函数getClosure()的设计,
 以及在计算goto的函数go()对项目集进行查找时更新. 之后只需进行如下的操作:
 \begin{lstlisting}[language=c++]
     // Add starting item to initialItemSet
@@ -771,7 +756,7 @@ class LR1Parser : public Parser {
 \end{lstlisting}
 
 下面对其中的关键函数go(), getClosure()进行介绍.
-\subsection{getClosure()获取闭包函数}
+\subsubsection{getClosure()获取闭包函数}
 
 该函数用于对给定项目集扩充为闭包, 定义如下:
 \begin{lstlisting}[language=c++]
@@ -831,7 +816,7 @@ void LR1Parser::getClosure(ItemSet &itemSet) {
 }
 \end{lstlisting}
 
-\subsection{go()函数介绍}
+\subsubsection{go()函数介绍}
 go()函数用于计算go(I, X), 即已有项目集I面临符号X的时候转移到的新状态项目集序号.
 其函数定义如下:
 \begin{lstlisting}[language=c++]
@@ -888,8 +873,8 @@ LR1Parser::ItemSet LR1Parser::getGo(ItemSet &itemSet, Symbol *symbolToGo) {
 }
 \end{lstlisting}
 
-\subsection{LR1语法分析过程的设计}
-使用前面生成的LR1语法分析表, 配合符号栈(symbolStack),
+\subsubsection{LR(1)语法分析过程的设计}
+使用前面生成的LR(1)语法分析表, 配合符号栈(symbolStack),
 状态栈(stateStack)对经过Lex处理后的token流进行分析, 并判断输入字符串是否被接受.
 其伪代码如下:
 \begin{lstlisting}[language=c++]
@@ -989,27 +974,24 @@ and Symbian)的C++单元测试框架, 它提供了丰富的断言, 致命和非�
 \end{itemize}
 
 在本程序中, 对Symbol, Rule, Grammar, Parser, LR1Item,
-LR1Grammar和LR1Parser均独立进行了测试, 分别在test\_symbol.cpp, test\_rule.cpp,
-test\_grammar.cpp, test\_parser.cpp,
-test\_lr1\_grammar.cpp和test\_lrl1\_parser.cpp中. 此外,
-对用户界面功能也进行了测试, 同时进行了综合测试, 在test\_main.cpp中.
+LR1Grammar和LR1Parser均独立进行了测试, 分别在以下文件中:
+\begin{itemize}
+	\item test\_symbol.cpp,
+	\item test\_rule.cpp,
+	\item test\_grammar.cpp,
+	\item test\_parser.cpp,
+	\item test\_lr1\_grammar.cpp,
+	\item test\_lrl1\_parser.cpp,
+\end{itemize}
+此外, 对用户界面功能也进行了测试, 同时进行了综合测试, 在test\_main.cpp中.
 
-下面以LR1ParserTest为例进行展示:
+下面以LR1ParserTest为例进行展示, 由于具体内容较长, 故使用...进行省略:
+首先定义测试类如下:
 \begin{lstlisting}[language=c++]
 class LR1ParserTest : public ::testing::Test {
   protected:
     void SetUp() {
-        g1_ = new Grammar();
-        g1_->loadGrammar("../grammars/g1.txt");
-        p1_ = new Parser(g1_, true);
-        lp1 = LR1Parser(g1_, true);
-        l1_ = new Lex(g1_, true);
-
-        g2_ = new Grammar();
-        g2_->loadGrammar("../grammars/g2.txt");
-        p2_ = new Parser(g2_, true);
-        lp2 = LR1Parser(g2_, true);
-        l2_ = new Lex(g2_, true);
+        ...
 
         g3_ = new Grammar();
         g3_->loadGrammar("../grammars/g3.txt");
@@ -1020,36 +1002,65 @@ class LR1ParserTest : public ::testing::Test {
 
     // There is memory leak for i didn't free allocated memory considering tight time.
 
-    Grammar *g1_;
-    Parser *p1_;
-    LR1Parser lp1;
-    Lex *l1_;
-
-    Variable *A;
-    Variable *S;
-    Terminal *Ta;
-
-    Grammar *g2_;
-    Parser *p2_;
-    LR1Parser lp2;
-    Lex *l2_;
+    ...
 
     Grammar *g3_;
     Parser *p3_;
     LR1Parser lp3;
     Lex *l3_;
 
-    std::string str1_0_ = std::string("aaa bbb a");
-    std::string str1_1_ = std::string("  a b   ");
-
-    std::string str2_0_ = std::string("1+2+3+");
     std::string str2_1_ = std::string("423*384*23");
     std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
     std::string str2_21_ = std::string("(33+34)*45*32+8*(3*1+3)");
     std::string str2_3_ =
         std::string("(33+34)*45(32+8*(3*1+3)"); // Have grammar error that can't
                                                 // pass LL(1) parse process.
+    ...
 };
 \end{lstlisting}
 
+根据测试类LR1ParserTest中的成员, 可以进行测试, 例如:
+\begin{lstlisting}[language=c++]
+TEST_F(LR1ParserTest, isGrammarLoadedCorrectly) {
+    Grammar *g = lp1.grammar;
+    g->printRules();
+
+    EXPECT_EQ(g->startSymbol->getIdentifier(), "S'");
+
+    g = lp2.grammar;
+    g->printRules();
+}
+\end{lstlisting}
+
+上面运行的TEST\_F()测试对测试类中定义的LR1语法分析器LR1Parser
+lp1判断其加载的语法的起始符是否为所给文法的拓广文法起始符"S'"
+来判断LR1Parser的语法加载功能是否正确.
+
+具体的输出和测试将在下一节 程序测试部分 进行更详细的介绍.
+
 \subsection{CLI用户界面的设计}
+
+为了更好的对程序进行使用, 设计了CLI(Command Line Interface, 命令行用户界面),
+让用户可以在终端中通过改变传递给本程序的参数的方式, 来使用本程序.
+程序的帮助信息如下:
+
+\begin{lstlisting}[language=c++]
+"Options:"
+"-h: show options"
+"-g <filename>: generate a parser from the given grammar"
+"-ll1 : Use LL(1) parser"
+"-lr1 : Use LR(1) parser"
+"-i <filename>: parse <filename>"
+"-s \"<input string>\": parse given string"
+"-v: give more output information"
+""
+"Examples:"
+"ll(1) parse \"input string\" using parser_instance saved "
+"previously:"
+"    ./parser -p parser_instance -i \"input string\" -ll1"
+"lr(1) parse input.txt using parser_instance saved previously:"
+"    ./parse -lr1 -p parser_instance -i input.txt"
+\end{lstlisting}
+
+程序使用-g读取存储在文件中的语法, 可选使用-i参数来处理存储在文件中的字符串,
+或者使用-s参数来处理作为参数传给程序的字符串;
