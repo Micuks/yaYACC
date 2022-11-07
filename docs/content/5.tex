@@ -1,112 +1,28 @@
-\subsection{C++版实现}
-出于模块化, 解耦合, 可扩展性和可读性考虑, 将词法分析程序划分为\textbf{符号和符号表}
-与\textbf{词法分析处理和输入输出}两个模块, 分别在 Symbol.h, Symbol.cpp, Lex.h和Lex.cpp
-四个源代码文件中进行实现, 并使用CMake作为构建工具.
+通过这次语法分析程序的上手实践, 让我对编译原理课程的认识增加了除理论知识之外的内容, 
+亲自动手实现语法分析程序也让我对编译器进行语法分析的过程有了更加深入的理解. \par
 
-其中, Symbol.h和Symbol.cpp对记号(Symbol)及记号表(SymbolList)的类进行成员和方法定义和实现,
-Lex.h和Lex.cpp对词法分析处理, 输入和输出类Lex进行成员和方法定义和实现.
+编译程序对源程序进行语法分析,
+目的就是根据源语言的语法规则从源程序记号序列中识别出各种语法成分,
+同时进行语法检查, 为语义分析和代码生成做准备. 语法分析工作由语法分析程序完成.
+语法分析程序在编译程序模型中, 处于词法分析程序完成之后, 语义分析程序开始之前,
+其输入是词法分析程序在扫描字符串源程序的过程中识别并生成的记号序列,
+语法分析程序分析验证这个记号序列是不是符合该语言语法规则的一个程序, 如果是,
+则输出其分析树; 如果不是, 则表明输入的记号序列中存在语法错误,
+需要报告错误的性质和位置.\par
 
-main.cpp承担着作为词法分析程序入口的功能.
+此外, 通过本次课程设计, 通过自己的动手亲身体验了将词法分析和语法分析等过程独立
+处理的好处: 如可以将各部分需要实现的功能进行良好封装和解耦合, 对外只暴露接口和
+提供服务, 各模块的具体实现对外部不可见, 简化了各部分实现的时候需要考虑的内容, 
+从而在实现识别并去除空格, 注释等功能的时候思路更加清晰, 还可以让程序可移植性, 
+可扩展性更强.\par
 
-% \subsubsection{main.cpp}
-% 词法分析程序入口
-% \lstinputlisting{../src/main.cpp}
-% \subsubsection{Symbol.h}
-% 对记号(Symbol)及记号表(SymbolList)的类成员和方法定义;
-% \lstinputlisting{../src/Symbol.h}
-% \subsubsection{Symbol.cpp}
-% 对记号(Symbol)及记号表(SymbolList)的类成员和方法实现;
-% \lstinputlisting{../src/Symbol.cpp}
-% \subsubsection{Lex.h}
-% 词法分析处理和输出类Lex的成员和方法定义;
-% \lstinputlisting{../src/Lex.h}
-% \subsubsection{Lex.cpp}
-% 词法分析处理和输出类Lex的成员和方法实现;
-% \lstinputlisting{../src/Lex.cpp}
-%
-\subsection{FLEX版实现}
-在C++版本实现思路的基础上, 通过学习FLEX的语法, 用FLEX实现了相同功能的版本.
-\subsubsection{FLEX介绍}
-\paragraph{基本结构}
-一个FLEX程序的基本结构为
-\begin{lstlisting}
-Statements/Definitaions
-%%
-Rules
-%%
-User Functions(optional)
-\end{lstlisting}
-我们将lexer保存在扩展名为.i的文件中.
+再次, 在这次课程设计中, 自己动手实现了LL(1)和LR(1)从任意给定文法到生成token流,
+构建任意给定文法的LL(1)和LR(1)分析表, 并据此对token流进行分析,
+对课本中介绍的各算法有了更加深入的理解, 反过来帮助了课程知识的学习.\par
 
-\paragraph{Definitions}
-我们可以为工具添加如下\textbf{options}:
-\begin{itemize}
-	\item \%option noyywrap -> flex将只读一个输入文件
-	\item \%option case-insensitive -> flex将不区分大小写
-\end{itemize}
-我们也可以对某些正则表达式设置\textbf{start states}: \\
-\begin{lstlisting}
-%x STATE_NAME
-\end{lstlisting}
-对于多行注释, 这是很好用的, 因为当到达注释末尾的时候, 可以更方便的搜索连续的内容
-并结束注释状态. \\
-此外, 我们可以利用正则表达式定义一些\textbf{Identifiers}并给他们命名, 如: \\
-\begin{lstlisting}
-print [ -\~] // space to \~(所有可打印的ASCII字符)
-\end{lstlisting}
-语句识别\{print\}作为一个包含所有可打印字符的group. \\
-使用identifiers我们可以在匹配特定token的时候方便的使用名称调用, 而不是每次都要
-书写完整的正则表达式. \\
-最后, 我们也可以定义一个\textbf{literal block of code}, 即事实上的c代码, 并且可以
-包含头文件, 常量, 全局变量和函数定义等. 这些代码将会被复制到flex生成的分析器中,
-并最终成为编译器的一部分. \\
-要定义一个这样的block, 要以如下形式:
-\begin{lstlisting}
-%{
-  // literal c code
-%}
-\end{lstlisting}
+通过自己实现一个简单的使用LL(1)或者LR(1)的yaYACC, 再对比对YACC的直接使用,
+对YACC的背后原理有了更深认识的同时, 也体会到了YACC精妙的设计.\par
 
-\paragraph{Rules}
-我们在这里定义tokens的规则.
-我们使用这样的格式: \\
-\begin{lstlisting}
-regex-rule { // c action-code }
-\end{lstlisting}
-左边部分仅包含正则表达式规则, 而右边部分是定义了行为的实际上的c代码. 目前我们将
-仅仅输出到标准输出说我们找到了一个特定的token, 在那之后我们会返回token的记号和属性.
-
-所以, 要搜索一个可打印字符串序列, 我们可能会使用: \\
-\begin{lstlisting}
-{print}+ { printf("Found printable character sequence %s\n", yytext); }
-\end{lstlisting}
-左边是一条匹配包含至少一个可打印字符的字符串的正则表达式规则, 变量yytext
-包含每次识别到的token.
-
-\paragraph{User Functions}
-最后, 在FLEX中我们也可以定义函数. \\
-例如, 代码可以包含主程序入口main(), 也可以包含一个错误信息打印函数yyerror().
-yywrap()函数由option "\%option noyywrap"定义. 我们可能还需要一个打印token的记号和
-属性的函数, 比如ret\_print(), 将token传入到后面的处理程序, 如语法分析程序, 并同时
-输出到标准输出.
-
-\paragraph{Variables}
-Flex的变量有如下几种:
-\begin{itemize}
-	\item char *yytext -> 包含识别到的token;
-	\item int yyleng -> 包含识别到的token的长度;
-	\item YYSTYPE yylval -> 用来和之后的程序, 例如语法分析程序通信.
-\end{itemize}
-
-\paragraph{Usage of Flex}
-要使用Flex, 需要先安装Flex, 之后执行以下命令: \\[0.5cm]
-flex lex.l // lex.l is the flex file \\[0.5cm]
-clang lex.yy.c -o c\_lex -lfl // or use gcc instead, generate c source file \\[0.5cm]
-./lex input\_file // lex will take input\_file as c source file to be analysed \\[0.5cm]
-默认情况下, 分析结果将输出到console中.
-
-\subsubsection{FLEX源代码清单}
-\begin{lstlisting}
-// lex.i
-\end{lstlisting}
-% \lstinputlisting{../lex.i}
+总体来说, 在本次课程设计过程中, 我对上学期所学形式语言和自动机知识, 以及本学期
+所学的词法分析, 语法分析等内容都有了更加深刻的理解, 并掌握了运用方法; 此外, 编程能力, 程序
+设计能力等也有了不小的提升.
