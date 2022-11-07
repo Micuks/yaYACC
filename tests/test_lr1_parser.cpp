@@ -73,20 +73,6 @@ TEST_F(LR1ParserTest, isGrammarLoadedCorrectly) {
 }
 
 TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
-    LR1Parser lp = lp2;
-    lp.parse(nullptr);
-    lp.printLR1ItemSets(std::cout);
-    lp.printLR1ParseTable(std::cout);
-}
-
-TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
-    LR1Parser lp = lp2;
-    lp.parse(nullptr);
-    lp.printLR1ItemSets(std::cout);
-    lp.printLR1ParseTable(std::cout);
-}
-
-TEST_F(LR1ParserTest, generateLR1DFAAndParseTable) {
     LR1Parser lp = lp3;
     lp.parse(nullptr);
     lp.printLR1ItemSets(std::cout);
