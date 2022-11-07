@@ -143,20 +143,5 @@ TEST_F(GrammarTest, checkEliminataLeftRecursion) {
     Grammar g = g3_;
     g.printRules();
     g.cfg2LL1();
-    //
-    // std::cout << "g3_.variables: \n";
-    // for (auto &a : g3_.variables) {
-    //     std::cout << "[" << a->getTag() << ", " << a->getIndex() << ", "
-    //               << a->getIdentifier() << "], ";
-    // }
-    // std::cout << std::endl;
-    //
-    // std::cout << "g3_.terminals: \n";
-    // for (auto &a : g3_.terminals) {
-    //     std::cout << "[" << a->getTag() << ", " << a->getIndex() << ", "
-    //               << a->getIdentifier() << "], ";
-    // }
-    // std::cout << std::endl;
-    //
     g.printRules();
 }

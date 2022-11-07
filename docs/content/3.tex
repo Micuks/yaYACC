@@ -889,6 +889,167 @@ LR1Parser::ItemSet LR1Parser::getGo(ItemSet &itemSet, Symbol *symbolToGo) {
 \end{lstlisting}
 
 \subsection{LR1语法分析过程的设计}
+使用前面生成的LR1语法分析表, 配合符号栈(symbolStack),
+状态栈(stateStack)对经过Lex处理后的token流进行分析, 并判断输入字符串是否被接受.
+其伪代码如下:
+\begin{lstlisting}[language=c++]
+void LR1Parser::parse(std::vector<Terminal *> *tokens) {
+    状态栈 stateStack;
+    符号栈 symbolStack;
+
+    // Init stateStack, 将状态0放入符号栈中
+    stateStack.push_back(0);
+
+    try {
+        for (token in tokens) {
+            auto state = stateStack.back();
+
+            // Action
+            LR1Parser::Action action;
+            try {
+                action = parseTable.at(state, token);
+
+            } catch (...) {
+
+                Error handler;
+            }
+
+            switch (action.type) {
+            case LR1Parser::ActionType::SHIFT_GOTO:
+
+                // Action
+                stateStack.push_back(action.state);
+                symbolStack.push_back(token);
+                取下一个token;
+                break;
+
+            case LR1Parser::ActionType::REDUCE:
+                if (action.rule.lhs == 开始符号) {
+                    // Accept input, exit parsing...
+
+                    // Action
+                    pToken = tokens->end();
+                } else {
+                    auto lhsReducedTo = action.rule.lhs;
+
+                    Action: reduce k symbols and their states
+
+                    try {
+                        action = parseTable.at(
+                            std::make_pair(stateStack.back(), lhsReducedTo));
+                    } catch (...) {
+
+                        Error handler;
+                    }
+
+                    if (action.type != LR1Parser::ActionType::SHIFT_GOTO) {
+
+                        Error handler;
+                    }
+
+                    // action.type is SHIFT_GOTO
+                    stateStack.push_back(action.state);
+                    symbolStack.push_back(lhsReducedTo);
+                }
+                break;
+            default:
+
+                Error handler;
+                break;
+            }
+        }
+    } catch (const std::exception &e) {
+
+        Error handler;
+    }
+
+		Output parse result.
+}
+\end{lstlisting}
 
 \subsection{GoogleTest 单元测试的设计}
+由于此程序实现功能较多, 模块数量也多, 所以采用单元测试的方法进行调试,
+既便利了debug, 也便利了观察输入本作业规定文法及其他文法的时候,
+对字符串的分析过程.
+
+GoogleTest是由Google发布的一个跨平台的(Linux, MacOS, Windows, Cygwin, Windows CE
+and Symbian)的C++单元测试框架, 它提供了丰富的断言, 致命和非致命判断, 参数化,
+"死亡测试"等.\par
+
+在本程序的单元测试中, 主要使用了其对函数测试的TEST()和对类测试的TEST\_F()实体;
+主要使用了如下语句:
+\begin{itemize}
+	\item EXPECT\_EQ(A, B). 判断A和B是否相等;
+	\item EXPECT\_NE(A, B). 判断A和B是否不等;
+	\item ASSERT\_EQ(A, B). 判断A和B是否相等. 如果不等, 不进行本单元中之后的测试;
+	\item ASSERT\_NE(A, B). 判断A和B是否不等. 如果相等, 不进行本单元中之后的测试;
+	\item EXPECT\_TRUE(str). 判断str是否为true;
+	\item ASSERT\_TRUE(str). 判断str是否为true; 如果为false,
+	      不进行本单元中后面的测试;
+\end{itemize}
+
+在本程序中, 对Symbol, Rule, Grammar, Parser, LR1Item,
+LR1Grammar和LR1Parser均独立进行了测试, 分别在test\_symbol.cpp, test\_rule.cpp,
+test\_grammar.cpp, test\_parser.cpp,
+test\_lr1\_grammar.cpp和test\_lrl1\_parser.cpp中. 此外,
+对用户界面功能也进行了测试, 同时进行了综合测试, 在test\_main.cpp中.
+
+下面以LR1ParserTest为例进行展示:
+\begin{lstlisting}[language=c++]
+class LR1ParserTest : public ::testing::Test {
+  protected:
+    void SetUp() {
+        g1_ = new Grammar();
+        g1_->loadGrammar("../grammars/g1.txt");
+        p1_ = new Parser(g1_, true);
+        lp1 = LR1Parser(g1_, true);
+        l1_ = new Lex(g1_, true);
+
+        g2_ = new Grammar();
+        g2_->loadGrammar("../grammars/g2.txt");
+        p2_ = new Parser(g2_, true);
+        lp2 = LR1Parser(g2_, true);
+        l2_ = new Lex(g2_, true);
+
+        g3_ = new Grammar();
+        g3_->loadGrammar("../grammars/g3.txt");
+        p3_ = new Parser(g3_, true);
+        lp3 = LR1Parser(g3_, true);
+        l3_ = new Lex(g3_, true);
+    }
+
+    // There is memory leak for i didn't free allocated memory considering tight time.
+
+    Grammar *g1_;
+    Parser *p1_;
+    LR1Parser lp1;
+    Lex *l1_;
+
+    Variable *A;
+    Variable *S;
+    Terminal *Ta;
+
+    Grammar *g2_;
+    Parser *p2_;
+    LR1Parser lp2;
+    Lex *l2_;
+
+    Grammar *g3_;
+    Parser *p3_;
+    LR1Parser lp3;
+    Lex *l3_;
+
+    std::string str1_0_ = std::string("aaa bbb a");
+    std::string str1_1_ = std::string("  a b   ");
+
+    std::string str2_0_ = std::string("1+2+3+");
+    std::string str2_1_ = std::string("423*384*23");
+    std::string str2_2_ = std::string("(33+34)*45/32+8*(3*1+3)");
+    std::string str2_21_ = std::string("(33+34)*45*32+8*(3*1+3)");
+    std::string str2_3_ =
+        std::string("(33+34)*45(32+8*(3*1+3)"); // Have grammar error that can't
+                                                // pass LL(1) parse process.
+};
+\end{lstlisting}
+
 \subsection{CLI用户界面的设计}
