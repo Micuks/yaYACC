@@ -1,0 +1,45 @@
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from LR1GrammarTest
+[ RUN      ] LR1GrammarTest.testConstructor
+
+g.variables:
+[0, 0, S], [2, 1, A],
+
+LRg.variables:
+[0, 0, S], [2, 1, A], [5, 2, S'],
+
+g.terminals:
+[-2, 0, BOTTOM OF STACK], [1, 1, <a>], [3, 2, <b>],
+
+LRg.terminals:
+[-2, 0, BOTTOM OF STACK], [1, 1, <a>], [3, 2, <b>],
+[       OK ] LR1GrammarTest.testConstructor (1 ms)
+[ RUN      ] LR1GrammarTest.augmenting
+Rules:
+0: E -> T A
+1: A -> <\+> T A
+2: A -> EPSILON
+3: B -> <\*> F B
+4: B -> EPSILON
+5: F -> <\(> E <\)>
+6: F -> N
+7: N -> <[0-9]+>
+8: T -> F B
+Rules:
+0: E' -> E
+1: E -> T A
+2: A -> <\+> T A
+3: A -> EPSILON
+4: B -> <\*> F B
+5: B -> EPSILON
+6: F -> <\(> E <\)>
+7: F -> N
+8: N -> <[0-9]+>
+9: T -> F B
+[       OK ] LR1GrammarTest.augmenting (0 ms)
+[----------] 2 tests from LR1GrammarTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 2 tests.

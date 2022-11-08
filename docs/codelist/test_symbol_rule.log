@@ -1,0 +1,878 @@
+[==========] Running 14 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from SymbolTests
+[ RUN      ] SymbolTests.VariableCorrectly
+[       OK ] SymbolTests.VariableCorrectly (0 ms)
+[ RUN      ] SymbolTests.TerminalCorrectly
+[       OK ] SymbolTests.TerminalCorrectly (0 ms)
+[----------] 2 tests from SymbolTests (0 ms total)
+
+[----------] 3 tests from RuleTest
+[ RUN      ] RuleTest.IsEmptyInitially
+[       OK ] RuleTest.IsEmptyInitially (0 ms)
+[ RUN      ] RuleTest.IsLhsCorrect
+[       OK ] RuleTest.IsLhsCorrect (0 ms)
+[ RUN      ] RuleTest.PrintRule
+r0_:  ->
+r1_: BEGIN ->
+r2_: BEGIN -> t1 t2[       OK ] RuleTest.PrintRule (0 ms)
+[----------] 3 tests from RuleTest (0 ms total)
+
+[----------] 9 tests from GrammarTest
+[ RUN      ] GrammarTest.IsEmptyInitially
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+[       OK ] GrammarTest.IsEmptyInitially (1 ms)
+[ RUN      ] GrammarTest.checkTerminalsAndVariables
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+g1_.variables:
+[0, 0, S], [2, 1, A],
+g1_.terminals:
+[-2, 0, BOTTOM OF STACK], [1, 1, <a>], [3, 2, <b>],
+Rules:
+0: S -> <a> A
+1: A -> <b>
+2: A -> EPSILON
+[       OK ] GrammarTest.checkTerminalsAndVariables (1 ms)
+[ RUN      ] GrammarTest.checkAtLhsRules
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+r: S -> <a> Ar.lhs: [0, 0, S], v: [0, 0, S]
+equal
+r: A -> <b>r.lhs: [2, 1, A], v: [0, 0, S]
+neq
+r: A -> EPSILONr.lhs: [2, 1, A], v: [0, 0, S]
+neq
+r: S -> <a> Ar.lhs: [0, 0, S], v: [0, 0, S]
+equal
+r: A -> <b>r.lhs: [2, 1, A], v: [0, 0, S]
+neq
+r: A -> EPSILONr.lhs: [2, 1, A], v: [0, 0, S]
+neq
+S -> <a> A
+[       OK ] GrammarTest.checkAtLhsRules (0 ms)
+[ RUN      ] GrammarTest.checkAtRhsRules
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+------
+s: [2, 1, A], r: S -> <a> AinRRhs: 1
+s: [2, 1, A], r: A -> <b>inRRhs: 0
+s: [2, 1, A], r: A -> EPSILONinRRhs: 0
+S -> <a> A
+------
+s: [2, 1, A], r: S -> <a> AinRRhs: 1
+s: [2, 1, A], r: A -> <b>inRRhs: 0
+s: [2, 1, A], r: A -> EPSILONinRRhs: 0
+------
+s: [1, 1, <a>], r: S -> <a> AinRRhs: 1
+s: [1, 1, <a>], r: A -> <b>inRRhs: 0
+s: [1, 1, <a>], r: A -> EPSILONinRRhs: 0
+S -> <a> A
+------
+s: [1, 1, <a>], r: S -> <a> AinRRhs: 1
+s: [1, 1, <a>], r: A -> <b>inRRhs: 0
+s: [1, 1, <a>], r: A -> EPSILONinRRhs: 0
+[       OK ] GrammarTest.checkAtRhsRules (0 ms)
+[ RUN      ] GrammarTest.checkGetSymbol
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+[       OK ] GrammarTest.checkGetSymbol (1 ms)
+[ RUN      ] GrammarTest.checkMatchTerminal0
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> <b> 3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> <b> 3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> 3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> [       OK ] GrammarTest.checkMatchTerminal0 (0 ms)
+[ RUN      ] GrammarTest.checkMatchTerminal1
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> 3[-2, 0, BOTTOM OF STACK] [1, 1, <a>] [3, 2, <b>] BOTTOM OF STACK <a> <b> [       OK ] GrammarTest.checkMatchTerminal1 (0 ms)
+[ RUN      ] GrammarTest.checkToEpsilonDIrectly
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+A: A S: S
+r: S -> <a> Ar.lhs: [0, 0, S], v: [2, 1, A]
+neq
+r: A -> <b>r.lhs: [2, 1, A], v: [2, 1, A]
+equal
+r: A -> EPSILONr.lhs: [2, 1, A], v: [2, 1, A]
+equal
+r: S -> <a> Ar.lhs: [0, 0, S], v: [0, 0, S]
+equal
+r: A -> <b>r.lhs: [2, 1, A], v: [0, 0, S]
+neq
+r: A -> EPSILONr.lhs: [2, 1, A], v: [0, 0, S]
+neq
+[       OK ] GrammarTest.checkToEpsilonDIrectly (1 ms)
+[ RUN      ] GrammarTest.checkEliminataLeftRecursion
+New line: S -> <a> A
+currToken[S]
+currToken[->]
+currToken[<a>]
+currToken[A]
+New line: A -> <b> | EPSILON
+currToken[A]
+currToken[->]
+currToken[<b>]
+currToken[|]
+currToken[EPSILON]
+New line: E -> T A
+currToken[E]
+currToken[->]
+currToken[T]
+currToken[A]
+New line: A -> <\+> T A | EPSILON
+currToken[A]
+currToken[->]
+currToken[<\+>]
+currToken[T]
+currToken[A]
+currToken[|]
+currToken[EPSILON]
+New line: B -> <\*> F B | EPSILON
+currToken[B]
+currToken[->]
+currToken[<\*>]
+currToken[F]
+currToken[B]
+currToken[|]
+currToken[EPSILON]
+New line: F -> <\(> E <\)> | N
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[N]
+New line: N -> <[0-9]+>
+currToken[N]
+currToken[->]
+currToken[<[0-9]+>]
+New line: T -> F B
+currToken[T]
+currToken[->]
+currToken[F]
+currToken[B]
+New line: E -> E <\+> T | E <\-> T | T
+currToken[E]
+currToken[->]
+currToken[E]
+currToken[<\+>]
+currToken[T]
+currToken[|]
+currToken[E]
+currToken[<\->]
+currToken[T]
+currToken[|]
+currToken[T]
+New line: T -> T <\*> F | T <\/> F | F
+currToken[T]
+currToken[->]
+currToken[T]
+currToken[<\*>]
+currToken[F]
+currToken[|]
+currToken[T]
+currToken[<\/>]
+currToken[F]
+currToken[|]
+currToken[F]
+New line: F -> <\(> E <\)> | <[0-9]*>
+currToken[F]
+currToken[->]
+currToken[<\(>]
+currToken[E]
+currToken[<\)>]
+currToken[|]
+currToken[<[0-9]*>]
+Rules:
+0: E -> E <\+> T
+1: E -> E <\-> T
+2: E -> T
+3: T -> T <\*> F
+4: T -> T <\/> F
+5: T -> F
+6: F -> <\(> E <\)>
+7: F -> <[0-9]*>
+Given CFG have left recursion. Eliminating then...
+r: E -> E <\+> Tr.lhs: [0, 0, E], v: [2, 1, T]
+neq
+r: E -> E <\-> Tr.lhs: [0, 0, E], v: [2, 1, T]
+neq
+r: E -> Tr.lhs: [0, 0, E], v: [2, 1, T]
+neq
+r: T -> T <\*> Fr.lhs: [2, 1, T], v: [2, 1, T]
+equal
+r: T -> T <\/> Fr.lhs: [2, 1, T], v: [2, 1, T]
+equal
+r: T -> Fr.lhs: [2, 1, T], v: [2, 1, T]
+equal
+r: F -> <\(> E <\)>r.lhs: [5, 2, F], v: [2, 1, T]
+neq
+r: F -> <[0-9]*>r.lhs: [5, 2, F], v: [2, 1, T]
+neq
+r: E -> E <\+> Tr.lhs: [0, 0, E], v: [0, 0, E]
+equal
+r: E -> E <\-> Tr.lhs: [0, 0, E], v: [0, 0, E]
+equal
+r: E -> Tr.lhs: [0, 0, E], v: [0, 0, E]
+equal
+r: T -> T <\*> Fr.lhs: [2, 1, T], v: [0, 0, E]
+neq
+r: T -> T <\/> Fr.lhs: [2, 1, T], v: [0, 0, E]
+neq
+r: T -> Fr.lhs: [2, 1, T], v: [0, 0, E]
+neq
+r: F -> <\(> E <\)>r.lhs: [5, 2, F], v: [0, 0, E]
+neq
+r: F -> <[0-9]*>r.lhs: [5, 2, F], v: [0, 0, E]
+neq
+Rules:
+0: F -> <\(> E <\)>
+1: F -> <[0-9]*>
+2: T -> <\*> F
+3: T -> <\/> F
+4: T -> F T'
+5: T' -> EPSILON
+6: E -> <\+> T
+7: E -> <\-> T
+8: E -> T E'
+9: E' -> EPSILON
+[       OK ] GrammarTest.checkEliminataLeftRecursion (2 ms)
+[----------] 9 tests from GrammarTest (11 ms total)
+
+[----------] Global test environment tear-down
+[==========] 14 tests from 3 test suites ran. (11 ms total)
+[  PASSED  ] 14 tests.

@@ -12,10 +12,29 @@ CliParser::CliParser(int argc, const char **argv) : argc(argc), argv(argv) {
     }
 #endif // DEBUG_MAIN
     // Skip argv[0]: <program name>
+    if (argc == 1) {
+        printHelp();
+    }
     for (int i = 1; i < argc; i++) {
         if (hasParameter("-h", i)) {
             printHelp();
             break;
+        } else if (hasParameter("-ll1", i)) {
+            if (optlr1 == true) {
+                std::cerr
+                    << "ERROR: Unable to use -ll1 and -lr1 at the same time!\n";
+                printHelp();
+                break;
+            }
+            optll1 = true;
+        } else if (hasParameter("-lr1", i)) {
+            if (optll1 == true) {
+                std::cerr
+                    << "ERROR: Unable to use -ll1 and -lr1 at the same time!\n";
+                printHelp();
+                break;
+            }
+            optlr1 = true;
         } else if (hasParameter("-g", i)) {
             optg = true;
             isHasRestParameter(i);
@@ -45,6 +64,13 @@ CliParser::CliParser(int argc, const char **argv) : argc(argc), argv(argv) {
             reportError();
             break;
         }
+    }
+    if (!optll1 && !optlr1) {
+        printHelp();
+        std::cout << std::endl;
+        std::cerr << ("ERROR: You need to specify the parser you "
+                      "want to use via -lr1 or -ll1.\n");
+        exit(-1);
     }
 }
 
