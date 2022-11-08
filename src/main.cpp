@@ -16,12 +16,17 @@ int main(int argc, const char **argv) {
     CliParser clip(argc, argv);
     Grammar *grammar;
     Parser *parser;
+    LR1Parser lrParser;
     Lex *lex;
     std::string rawInput;
     std::vector<Terminal *> *tokenizedInput;
 
     // Load config params
     // Load grammar
+    if (!clip.ll1() && !clip.lr1()) {
+        throw std::runtime_error("ERROR: You need to specify the parser you "
+                                 "want to use via -lr1 or -ll1.");
+    }
     if (clip.g()) {
         grammar = new Grammar();
         // Generate a parser from the given grammar.
@@ -38,18 +43,33 @@ int main(int argc, const char **argv) {
             std::cout << std::endl;
         }
 
-        parser = new Parser(grammar, clip.v());
-        parser->makeTable();
+        if (clip.ll1()) {
+            parser = new Parser(grammar, clip.v());
+            parser->makeTable();
 
-        lex = new Lex(grammar, clip.v());
+            lex = new Lex(grammar, clip.v());
 
-        if (clip.v()) {
-            parser->printFirstTable();
-            std::cout << std::endl;
-            parser->printFollowTable();
-            std::cout << std::endl;
-            parser->printParseTable();
-            std::cout << std::endl;
+            if (clip.v()) {
+                parser->printFirstTable();
+                std::cout << std::endl;
+                parser->printFollowTable();
+                std::cout << std::endl;
+                parser->printParseTable();
+                std::cout << std::endl;
+            }
+        }
+
+        if (clip.lr1()) {
+            parser = new Parser(grammar, clip.v());
+            lrParser = LR1Parser(grammar, clip.v());
+            lrParser.makeTable();
+
+            if (clip.v()) {
+                lrParser.printLR1ItemSets(std::cout);
+                lrParser.printLR1ParseTable(std::cout);
+            }
+
+            lex = new Lex(grammar, clip.v());
         }
     }
 
@@ -92,7 +112,12 @@ int main(int argc, const char **argv) {
     // TODO: Load and save parser to file
 
     try {
-        parser->parse(tokenizedInput);
+        if (clip.ll1()) {
+            parser->parse(tokenizedInput);
+        }
+        if (clip.lr1()) {
+            lrParser.parse(tokenizedInput);
+        }
     } catch (std::exception &e) {
         std::cerr << e.what();
     }

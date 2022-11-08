@@ -18,12 +18,14 @@ class CliParser {
     bool v() { return optv; }
     bool s() { return opts; }
     std::string sStr() { return sstr; }
+    bool lr1() { return optlr1; }
+    bool ll1() { return optll1; }
 
   private:
     int argc;
     const char **argv;
     bool errorFlag;
-    bool optg, opto, optp, opti, optv, opts;
+    bool optg, opto, optp, opti, optv, opts, optll1, optlr1;
     std::string gfile, pfile, ofile, ifile, sstr;
     void printHelp();
     void printError();
