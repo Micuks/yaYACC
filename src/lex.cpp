@@ -23,10 +23,6 @@ std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
 
     // Match longest match
     while (currCh) {
-#ifdef DEBUG_LEX
-        std::cout << "Current char: " << currCh << ", current token: " << token
-                  << std::endl;
-#endif
         std::string tmp = token;
         tmp += currCh;
         int cntMatch = 0;
@@ -34,9 +30,6 @@ std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
         for (auto &a : candidateMatches) {
             if (a->matcher(tmp)) {
                 cntMatch++;
-#ifdef DEBUG_LEX
-                std::cout << *a << " matches " << tmp << std::endl;
-#endif
             }
         }
 
@@ -44,21 +37,9 @@ std::vector<Terminal *> *Lex::tokenize(const char *rawStr) {
         // tokens. If token is invalid, throw exception.
         if (cntMatch) {
 
-#ifdef DEBUG_LEX
-            std::cout << "cntMatch=" << cntMatch << ">0, expand token. ";
-#endif
             token += currCh;
             currCh = rawStr[idx++];
-#ifdef DEBUG_LEX
-            std::cout << "Current char: " << currCh
-                      << ", current token: " << token << std::endl;
-#endif
         } else {
-#ifdef DEBUG_LEX
-            std::cout << "cntMatch=" << cntMatch
-                      << ", stop appending char to current token " << token
-                      << ".\n";
-#endif
 
             // Validate token
             Terminal *t = g->matchTerminal(token);

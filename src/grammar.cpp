@@ -11,20 +11,9 @@
 vector<Rule> Grammar::atLhsRules(Variable *v) {
     vector<Rule> retVec;
     for (Rule &r : rules) {
-#ifdef DEBUG_GRAMMAR
-        cout << "r: " << r;
-        cout << "r.lhs: " << r.lhs->toString() << ", v: " << v->toString()
-             << endl;
-#endif // DEBUG_GRAMMAR
         if (*(r.lhs) == *v) {
-#ifdef DEBUG_GRAMMAR
-            cout << "equal" << endl;
-#endif // DEBUG_GRAMMAR
             retVec.push_back(r);
         } else {
-#ifdef DEBUG_GRAMMAR
-            cout << "neq" << endl;
-#endif // DEBUG_GRAMMAR
         }
     }
     return retVec;
@@ -40,10 +29,6 @@ vector<Rule> Grammar::atRhsRules(Symbol *s) {
                 break;
             }
         }
-#ifdef DEBUG_GRAMMAR
-        cout << "s: " << (*s).toString() << ", "
-             << "r: " << r << "inRRhs: " << ((inRRhs) ? "1" : "0") << endl;
-#endif // DEBUG_GRAMMAR
         if (inRRhs) {
             // if (s->getType() == SymbolType(variable) && r.lhs != s) {
             //     retVec.push_back(r);
@@ -80,19 +65,13 @@ void Grammar::loadGrammar(const char *filename) {
         if (line.length() == 0) {
             continue;
         }
-#ifdef DEBUG
-        cout << "New line: " << line << endl;
-#endif // DEBUG
-       // Initialize current rule
+        // Initialize current rule
         currRule = Rule();
 
         istringstream ss(line);
         string token;
 
         while (ss >> token) {
-#ifdef DEBUG
-            cout << "currToken[" << token << "]\n";
-#endif // DEBUG
             if (currRule.lhs == nullptr) {
                 // Read token to create lhs of current rule
                 bool isExist = false;
@@ -128,11 +107,6 @@ void Grammar::loadGrammar(const char *filename) {
                     }
                 }
                 if (!isExist) {
-#ifdef DEBUG_LEX
-                    std::cout << token << ".regexPattern="
-                              << token.substr(1, token.length() - 2)
-                              << std::endl;
-#endif
                     auto sym = new Terminal(
                         cnt++, terminals.size(), token,
                         regex(token.substr(1, token.length() - 2)));
@@ -198,17 +172,8 @@ Symbol *Grammar::getSymbol(int tag) {
 }
 
 Terminal *Grammar::matchTerminal(string str) {
-#ifdef DEBUG_GRAMMAR
-    cout << terminals.size();
-    for (auto &a : terminals) {
-        cout << a->toString() << " ";
-    }
-#endif // DEBUG_GRAMMAR
     for (auto &a : terminals) {
         assert(a != nullptr);
-#ifdef DEBUG_GRAMMAR
-        cout << a->getIdentifier() << " ";
-#endif // DEBUG_GRAMMAR
         if (a->matcher(str)) {
             return a;
         }
@@ -251,23 +216,12 @@ void Grammar::cfg2LL1() {
                   << std::endl;
 
         for (auto &v : variablesWhoseRulesHaveLeftRecursion) {
-#ifdef DEBUG_LEFT_RECURSION
-            std::cout << "Current variable: " << v->getIdentifier()
-                      << std::endl;
-#endif // DEBUG_LEFT_RECURSION
 
             newVariable = getNewVariable(newlyAddedVariables, v, tagCnt,
                                          variablesIndexCnt);
-#ifdef DEBUG_LEFT_RECURSION
-            std::cout << "New variable: " << newVariable->toString()
-                      << std::endl;
-#endif // DEBUG_LEFT_RECURSION
 
             auto vRules = atLhsRules(v);
             for (auto &r : vRules) {
-#ifdef DEBUG_LEFT_RECURSION
-                std::cout << "Current rule to process: " << r << std::endl;
-#endif // DEBUG_LEFT_RECURSION
 
                 auto &lhs = r.lhs;
                 auto &rhs = r.rhs;
@@ -276,29 +230,17 @@ void Grammar::cfg2LL1() {
                 // rule with newVariable as lhs.
                 if (rhs[0]->getIdentifier() == lhs->getIdentifier()) {
 
-#ifdef DEBUG_LEFT_RECURSION
-                    std::cout << "Lhs == rhs[0], eliminate recursion."
-                              << std::endl;
-#endif // DEBUG_LEFT_RECURSION
                     vector<Symbol *> newRhs;
                     for (auto it = rhs.begin() + 1; it != rhs.end(); it++) {
                         newRhs.push_back(*it);
                     }
 
                     Rule newRule = Rule(lhs, newRhs);
-#ifdef DEBUG_LEFT_RECURSION
-                    std::cout << "New rule: " << newRule << std::endl;
-#endif // DEBUG_LEFT_RECURSION
                     rulesToAdd.push_back(newRule);
                     rulesToDelete.push_back(r);
                 } else {
 
-#ifdef DEBUG_LEFT_RECURSION
-                    std::cout << "Lhs is not rhs[0], add new rule with "
-                                 "newVariable as lhs symbol."
-                              << std::endl;
-#endif // DEBUG_LEFT_RECURSION
-       // Add new rule with newVariable as lhs.
+                    // Add new rule with newVariable as lhs.
                     vector<Symbol *> newRhs;
                     for (auto it = rhs.begin(); it != rhs.end(); it++) {
                         newRhs.push_back(*it);
@@ -306,9 +248,6 @@ void Grammar::cfg2LL1() {
                     newRhs.push_back(newVariable);
 
                     Rule newRule = Rule(lhs, newRhs);
-#ifdef DEBUG_LEFT_RECURSION
-                    std::cout << "New rule: " << newRule << std::endl;
-#endif // DEBUG_LEFT_RECURSION
                     rulesToAdd.push_back(newRule);
                     rulesToDelete.push_back(r);
                 }
@@ -320,50 +259,15 @@ void Grammar::cfg2LL1() {
             rulesToAdd.push_back(Rule(newVariable, newRhs));
         }
 
-#ifdef DEBUG_LEFT_RECURSION
-        std::cout << "Variables before add and delete: " << std::endl;
-        for (auto &a : variables) {
-            std::cout << *a << ", ";
-        }
-        std::cout << std::endl;
-#endif // DEBUG_LEFT_RECURSION
-
         // Add and delete rules based on rulesToAdd and RulesToDelete.
         for (auto &v : newlyAddedVariables) {
             variables.push_back(v);
         }
 
-#ifdef DEBUG_LEFT_RECURSION
-        std::cout << "Variables after add and delete: " << std::endl;
-        for (auto &a : variables) {
-            std::cout << *a << ", ";
-        }
-        std::cout << std::endl;
-#endif // DEBUG_LEFT_RECURSION
-
-#ifdef DEBUG_LEFT_RECURSION
-        std::cout << "Rules before add and delete: " << std::endl;
-        printRules();
-#endif // DEBUG_LEFT_RECURSION
-#ifdef DEBUG_LEFT_RECURSION
-        std::cout << "Rules to delete:" << std::endl;
-        for (auto &r : rulesToDelete) {
-            std::cout << r << std::endl;
-        }
-        std::cout << "Rules to add:" << std::endl;
-        for (auto &r : rulesToAdd) {
-            std::cout << r << std::endl;
-        }
-        std::cout << std::endl;
-#endif // DEBUG_LEFT_RECURSION
-
         for (auto jt = rulesToDelete.begin(); jt != rulesToDelete.end(); jt++) {
             bool found = false;
             for (auto it = rules.begin(); it != rules.end(); it++) {
                 if ((*it) == (*jt)) {
-#ifdef DEBUG_LEFT_RECURSION
-                    std::cout << *it << " equals " << *jt << std::endl;
-#endif // DEBUG_LEFT_RECURSION
 
                     rules.erase(it); // If deletes an element, break loop to
                                      // avoid error access.
@@ -375,10 +279,6 @@ void Grammar::cfg2LL1() {
         for (auto &r : rulesToAdd) {
             rules.push_back(r);
         }
-#ifdef DEBUG_LEFT_RECURSION
-        std::cout << "Rules after add and delete: " << std::endl;
-        printRules();
-#endif // DEBUG_LEFT_RECURSION
     }
 }
 
@@ -431,10 +331,6 @@ Grammar::getNewVariable(std::unordered_set<Variable *> &newlyAddedVariables,
  * Generate augmenteted grammar for LR(1)
  */
 void LR1Grammar::augmenting() {
-#ifdef DEBUG_LR1GRAMMAR
-
-    std::cout << "\nAugmenting:\n";
-#endif // DEBUG_LR1GRAMMAR
 
     Variable *start =
         new Variable(terminals.size() + variables.size(), variables.size(),
@@ -449,14 +345,6 @@ void LR1Grammar::augmenting() {
     Rule newRule(startSymbol, std::vector<Symbol *>{oldStartSymbol});
     rules.insert(rules.begin(), newRule);
     // rules.push_back(newRule);
-
-#ifdef DEBUG_LR1GRAMMAR
-    std::cout << "New start symbol: " << *startSymbol << std::endl;
-
-    std::cout << "New rule: " << newRule << std::endl;
-    std::cout << "Rules: ";
-    printRules();
-#endif // DEBUG_LR1GRAMMAR
 }
 
 Grammar *LR1Grammar::getBase() {

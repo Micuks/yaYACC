@@ -5,12 +5,6 @@ using namespace std;
 
 CliParser::CliParser(int argc, const char **argv) : argc(argc), argv(argv) {
     errorFlag = false;
-#ifdef DEBUG_MAIN
-    std::cout << "argc: " << argc << ", argv: \n";
-    for (int i = 0; i < argc; i++) {
-        std::cout << "argv[" << i << "]: " << argv[i] << ", ";
-    }
-#endif // DEBUG_MAIN
     // Skip argv[0]: <program name>
     if (argc == 1) {
         printHelp();
@@ -55,9 +49,6 @@ CliParser::CliParser(int argc, const char **argv) : argc(argc), argv(argv) {
             opts = true;
             isHasRestParameter(i);
             sstr = std::string(argv[++i]);
-#ifdef DEBUG_MAIN
-            std::cout << "sStr: " << sstr << std::endl;
-#endif // DEBUG_MAIN
         } else if (hasParameter("-v", i)) {
             optv = true;
         } else {
@@ -109,11 +100,6 @@ void CliParser::printHelp() {
 }
 
 bool CliParser::hasParameter(const char *param, int i) {
-#ifdef DEBUG_CLIPARSER
-    std::cout << "Current argv: " << argv[i] << ", current parameter: " << param
-              << std::endl;
-    std::cout << "strcmp[" << strcmp(argv[i], param) << "]" << std::endl;
-#endif // DEBUG_CLIPARSER
     return !strcmp(argv[i], param);
     // return std::string(argv[i]) == std::string(param);
 }
